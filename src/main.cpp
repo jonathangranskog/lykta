@@ -1,12 +1,5 @@
 #include <iostream>
-#include <nanogui/nanogui.h>
-
-class Application : public nanogui::Screen {
-public:
-	Application() : nanogui::Screen(Eigen::Vector2i(1024, 768), "lykta") {
-		
-	}
-};
+#include "Application.hpp"
 
 int main(int argc, char** argv)
 {
