@@ -19,6 +19,7 @@ namespace Lykta {
 
 			// Initialize renderer
 			renderer = std::unique_ptr<Renderer>(new Renderer());
+			renderer->openScene("");
 			
 			// Gamma correction shader
 			shader = std::unique_ptr<nanogui::GLShader>(new nanogui::GLShader()); 
@@ -86,7 +87,7 @@ namespace Lykta {
 		void drawContents() {
 			// Drawing function for the image. 
 			// TODO: Allow change of screen size based on render resolution
-			renderer->render();
+			renderer->renderFrame();
 
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, texture);
