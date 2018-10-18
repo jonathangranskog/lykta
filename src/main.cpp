@@ -7,7 +7,7 @@ int main(int argc, char** argv)
 		nanogui::init();
 
 		{
-			nanogui::ref<Application> app = new Application();
+			nanogui::ref<Lykta::Application> app = new Lykta::Application();
 			app->drawAll();
 			app->setVisible(true);
 			nanogui::mainloop();
