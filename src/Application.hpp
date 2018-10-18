@@ -91,7 +91,7 @@ namespace Lykta {
 
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, texture);
-			glPixelStorei(GL_UNPACK_ROW_LENGTH, 768);
+			glPixelStorei(GL_UNPACK_ROW_LENGTH, 1024);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 1024, 768, 0, GL_RGB, GL_FLOAT, renderer->getImage().data());
 			glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 

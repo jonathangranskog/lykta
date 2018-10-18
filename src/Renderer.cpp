@@ -8,22 +8,20 @@ void Lykta::Renderer::openScene(const std::string& filename) {
 	iteration = 0;
 
 	// TODO: Initialize the scene here!
+	scene = std::unique_ptr<Scene>(new Scene(filename));
 }
 
 void Lykta::Renderer::renderFrame() {
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_real_distribution<float> distr(0.f, 1.0f);
 	float blend = 1.f / (iteration + 1);
 
 	for (int j = 0; j < height; j++) {
 		for (int i = 0; i < width; i++) {
-			glm::vec3 result = glm::vec3(distr(gen), distr(gen), distr(gen));
-
+			glm::vec3 result = scene->sample(glm::vec2((float)i / width, (float)j / height));
+			
 			if (iteration > 0)
-				image[i * height + j] = (1 - blend) * image[i * height + j] + blend * result;
+				image[j * width + i] = (1 - blend) * image[j * width + i] + blend * result;
 			else {
-				image[i * height + j] = result;
+				image[j * width + i] = result;
 			}
 		}
 	}
