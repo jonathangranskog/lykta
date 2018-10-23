@@ -15,12 +15,14 @@ namespace Lykta {
 		
 	public:
 		Application() : nanogui::Screen(Eigen::Vector2i(1024, 768), "lykta") {
-			initializeGUI();
-
+			
 			// Initialize renderer
 			renderer = std::unique_ptr<Renderer>(new Renderer());
 			renderer->openScene("");
 			
+			// Initialize user interface
+			initializeGUI();
+
 			// Gamma correction shader
 			shader = std::unique_ptr<nanogui::GLShader>(new nanogui::GLShader()); 
 			shader->init(
@@ -80,7 +82,7 @@ namespace Lykta {
 
 		void initializeGUI() {
 			// TODO: Add windows and so on
-			glfwSetWindowSize(glfwWindow(), 1024, 768);
+			glfwSetWindowSize(glfwWindow(), renderer->getResolution().x, renderer->getResolution().y);
 			performLayout(mNVGContext);
 		}
 
@@ -88,14 +90,15 @@ namespace Lykta {
 			// Drawing function for the image. 
 			// TODO: Allow change of screen size based on render resolution
 			renderer->renderFrame();
+			const glm::ivec2& resolution = renderer->getResolution();
 
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, texture);
-			glPixelStorei(GL_UNPACK_ROW_LENGTH, 1024);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 1024, 768, 0, GL_RGB, GL_FLOAT, renderer->getImage().data());
+			glPixelStorei(GL_UNPACK_ROW_LENGTH, resolution.x);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, resolution.x, resolution.y, 0, GL_RGB, GL_FLOAT, renderer->getImage().data());
 			glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 
-			glViewport(0, 0, mPixelRatio * 1024, mPixelRatio * 768);
+			glViewport(0, 0, mPixelRatio * resolution.x, mPixelRatio * resolution.y);
 			shader->bind();
 			shader->setUniform("source", 0);
 			shader->drawIndexed(GL_TRIANGLES, 0, 2);
