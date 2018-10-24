@@ -24,7 +24,7 @@ namespace Lykta {
 
 		bool intersect(const Ray& ray) const;
 
-		const glm::ivec2& getResolution() const {
+		const glm::ivec2 getResolution() const {
 			return camera->getResolution();
 		}
 

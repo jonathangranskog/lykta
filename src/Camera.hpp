@@ -21,7 +21,7 @@ namespace Lykta {
 	public:
 		virtual glm::vec3 createRay(Ray& ray, const glm::vec2& pixel, const glm::vec2& sample) const = 0;
 
-		const glm::vec2& getResolution() const { return resolution; }
+		virtual const glm::vec2 getResolution() const { return resolution; }
 	};
 
 	class PerspectiveCamera : public Camera {
