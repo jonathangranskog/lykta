@@ -24,12 +24,17 @@ Lykta::Scene* Lykta::Scene::parseFile(const std::string& filename) {
 	vertices[2].x = +1; vertices[2].y = -1; vertices[2].z = -1;
 	vertices[3].x = +1; vertices[3].y = -1; vertices[3].z = +1;
 
-	glm::ivec3* triangles = (glm::ivec3*) rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT3, sizeof(glm::ivec3), 2);
+	struct Tri {
+		unsigned x, y, z;
+	};
+
+	Tri* triangles = (Tri*) rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT3, sizeof(glm::ivec3), 2);
 	triangles[0].x = 0; triangles[0].y = 1; triangles[0].z = 2;
 	triangles[1].x = 1; triangles[1].y = 3; triangles[1].z = 2;
 	
 	rtcCommitGeometry(geom);
 	unsigned int geomID = rtcAttachGeometry(embree_scene, geom);
+	rtcCommitScene(embree_scene);
 	rtcReleaseGeometry(geom);
 
 	RTCIntersectContext ctx;
@@ -40,14 +45,17 @@ Lykta::Scene* Lykta::Scene::parseFile(const std::string& filename) {
 	ray.tnear = 0.f; ray.tfar = INFINITY; ray.time = 0.f;
 
 	RTCHit hit;
-	hit.geomID = geomID;
+	hit.geomID = RTC_INVALID_GEOMETRY_ID;
+	hit.instID[0] = RTC_INVALID_GEOMETRY_ID;
 
 	RTCRayHit rayhit;
 	rayhit.ray = ray;
 	rayhit.hit = hit;
 	rtcIntersect1(embree_scene, &ctx, &rayhit);
+	glm::vec3 hitPos = glm::vec3(0, 1, 0) + rayhit.ray.tfar * glm::vec3(0, -1, 0);
 
 	std::cout << rayhit.hit.geomID << std::endl;
-
+	std::cout << rayhit.ray.tfar << std::endl;
+	
 	return scene;
 }
