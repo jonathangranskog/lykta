@@ -19,7 +19,7 @@ bool Lykta::Scene::intersect(const Ray& r) const {
 	rayhit.hit = hit;
 	rtcIntersect1(embree_scene, &ctx, &rayhit);
 	
-	return true;
+	return (rayhit.hit.geomID != RTC_INVALID_GEOMETRY_ID);
 }
 
 // Static function for parsing a scene file

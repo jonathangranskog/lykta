@@ -8,8 +8,6 @@ void Lykta::Renderer::openScene(const std::string& filename) {
 	scene = std::unique_ptr<Scene>(Scene::parseFile(filename));
 	resolution = scene->getResolution();
 	image = std::vector<glm::vec3>(resolution.x * resolution.y);
-	Ray ray(glm::vec3(0, 1, 0), glm::vec3(0, -1, 0), glm::vec2(0, INFINITY));
-	scene->intersect(ray);
 }
 
 void Lykta::Renderer::renderFrame() {
@@ -26,7 +24,8 @@ void Lykta::Renderer::renderFrame() {
 			scene->getCamera()->createRay(ray, imageSample, glm::vec2(0));
 
 			// Third integrate
-			glm::vec3 result = glm::vec3(imageSample.x / resolution.x, imageSample.y / resolution.y, 0.f);
+			bool hit = scene->intersect(ray);
+			glm::vec3 result = glm::vec3((float)hit);
 
 			if (iteration > 0)
 				image[j * resolution.x + i] = (1 - blend) * image[j * resolution.x + i] + blend * result;
