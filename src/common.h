@@ -3,26 +3,23 @@
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
 
-#define EPS 1e-6
+#define EPS 1e-6f
 
 namespace Lykta {
 
 	struct Ray {
 		glm::vec3 o;
 		glm::vec3 d;
-		float tmin;
-		float tmax;
+		glm::vec2 t;
 
 		Ray() {};
-		Ray(glm::vec3 orig, glm::vec3 dir) : o(orig), d(dir) {}
+		Ray(glm::vec3 orig, glm::vec3 dir, glm::vec2 tz) : o(orig), d(dir), t(tz) {}
 	};
 
-	struct Vertex {
-		glm::vec2 uv;
-		glm::vec3 pos;
-		glm::vec3 n;
+	struct Triangle {
+		unsigned x, y, z;
 
-		Vertex() {};
-		Vertex(const glm::vec3& p, const glm::vec3& n_, const glm::vec3& tx) : pos(p), n(n_), uv(tx) {}
+		Triangle() {};
+		Triangle(unsigned x_, unsigned y_, unsigned z_) : x(x_), y(y_), z(z_) {}
 	};
 }

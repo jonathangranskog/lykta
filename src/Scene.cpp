@@ -1,48 +1,14 @@
 #include <iostream>
 #include "common.h"
 #include "Scene.hpp"
-#include <embree3/rtcore.h>
-#include <embree3/rtcore_scene.h>
 
-bool Lykta::Scene::intersect(const Ray& ray) const {
-	// TODO: Implement intersection!
-	return true;
-}
-
-// Static function for parsing a scene file
-Lykta::Scene* Lykta::Scene::parseFile(const std::string& filename) {
-	Scene* scene = new Scene();
-	scene->camera = std::unique_ptr<Camera>(new PerspectiveCamera());
-
-	// Create temporary Embree geometry
-	RTCDevice embree_device = rtcNewDevice(NULL);
-	RTCScene embree_scene = rtcNewScene(embree_device);
-	RTCGeometry geom = rtcNewGeometry(embree_device, RTC_GEOMETRY_TYPE_TRIANGLE);
-	glm::vec3* vertices = (glm::vec3*) rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT3, sizeof(glm::vec3), 4);
-	vertices[0].x = -1; vertices[0].y = -1; vertices[0].z = -1;
-	vertices[1].x = -1; vertices[1].y = -1; vertices[1].z = +1;
-	vertices[2].x = +1; vertices[2].y = -1; vertices[2].z = -1;
-	vertices[3].x = +1; vertices[3].y = -1; vertices[3].z = +1;
-
-	struct Tri {
-		unsigned x, y, z;
-	};
-
-	Tri* triangles = (Tri*) rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT3, sizeof(glm::ivec3), 2);
-	triangles[0].x = 0; triangles[0].y = 1; triangles[0].z = 2;
-	triangles[1].x = 1; triangles[1].y = 3; triangles[1].z = 2;
-	
-	rtcCommitGeometry(geom);
-	unsigned int geomID = rtcAttachGeometry(embree_scene, geom);
-	rtcCommitScene(embree_scene);
-	rtcReleaseGeometry(geom);
-
+bool Lykta::Scene::intersect(const Ray& r) const {
 	RTCIntersectContext ctx;
 	rtcInitIntersectContext(&ctx);
 	RTCRay ray;
-	ray.org_x = 0.f; ray.org_y = 1.f; ray.org_z = 0.f;
-	ray.dir_x = 0; ray.dir_y = -1; ray.dir_z = 0;
-	ray.tnear = 0.f; ray.tfar = INFINITY; ray.time = 0.f;
+	ray.org_x = r.o.x; ray.org_y = r.o.y; ray.org_z = r.o.z;
+	ray.dir_x = r.d.x; ray.dir_y = r.d.y; ray.dir_z = r.d.z;
+	ray.tnear = r.t.x; ray.tfar = r.t.y; ray.time = 0.f;
 
 	RTCHit hit;
 	hit.geomID = RTC_INVALID_GEOMETRY_ID;
@@ -52,10 +18,67 @@ Lykta::Scene* Lykta::Scene::parseFile(const std::string& filename) {
 	rayhit.ray = ray;
 	rayhit.hit = hit;
 	rtcIntersect1(embree_scene, &ctx, &rayhit);
-	glm::vec3 hitPos = glm::vec3(0, 1, 0) + rayhit.ray.tfar * glm::vec3(0, -1, 0);
-
-	std::cout << rayhit.hit.geomID << std::endl;
-	std::cout << rayhit.ray.tfar << std::endl;
 	
+	return true;
+}
+
+// Static function for parsing a scene file
+Lykta::Scene* Lykta::Scene::parseFile(const std::string& filename) {
+	Scene* scene = new Scene();
+	scene->camera = std::unique_ptr<Camera>(new PerspectiveCamera());
+
+	std::vector<Mesh> meshes = std::vector<Mesh>();
+
+	// Create temporary geometry
+	Mesh mesh = Mesh();
+	std::vector<glm::vec3> vertices;
+	std::vector<Triangle> triangles;
+	Triangle t1 = Triangle(0, 1, 2);
+	Triangle t2 = Triangle(1, 3, 2);
+	glm::vec3 v0 = glm::vec3(-1, -1, -1);
+	glm::vec3 v1 = glm::vec3(-1, -1, +1);
+	glm::vec3 v2 = glm::vec3(+1, -1, -1);
+	glm::vec3 v3 = glm::vec3(+1, -1, +1);
+	vertices.push_back(v0); vertices.push_back(v1);
+	vertices.push_back(v2); vertices.push_back(v3);
+	triangles.push_back(t1); triangles.push_back(t2);
+	mesh.setPositions(vertices);
+	mesh.setTriangles(triangles);
+	meshes.push_back(mesh);
+	scene->meshes = meshes;
+
+	scene->generateEmbreeScene();
 	return scene;
+}
+
+void Lykta::Scene::generateEmbreeScene() {
+	embree_device = rtcNewDevice(NULL);
+	embree_scene = rtcNewScene(embree_device);
+	
+	for (unsigned i = 0; i < meshes.size(); i++) {
+		unsigned geomID = createEmbreeGeometry(meshes[i]);
+	}
+
+	rtcCommitScene(embree_scene);
+}
+
+unsigned Lykta::Scene::createEmbreeGeometry(Mesh& mesh) {
+	RTCGeometry geometry = rtcNewGeometry(embree_device, RTC_GEOMETRY_TYPE_TRIANGLE);
+	
+	glm::vec3* vertices = (glm::vec3*) rtcSetNewGeometryBuffer(geometry, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT3, sizeof(glm::vec3), mesh.positions.size());
+	std::memcpy(vertices, (void*)mesh.positions.data(), sizeof(glm::vec3) * mesh.positions.size());
+	
+	glm::vec3* normals = (glm::vec3*) rtcSetNewGeometryBuffer(geometry, RTC_BUFFER_TYPE_NORMAL, 0, RTC_FORMAT_FLOAT3, sizeof(glm::vec3), mesh.normals.size());
+	std::memcpy(normals, (void*)mesh.normals.data(), sizeof(glm::vec3) * mesh.normals.size());
+
+	glm::vec2* texcoords = (glm::vec2*) rtcSetNewGeometryBuffer(geometry, RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE, 0, RTC_FORMAT_FLOAT2, sizeof(glm::vec2), mesh.texcoords.size());
+	std::memcpy(texcoords, (void*)mesh.texcoords.data(), sizeof(glm::vec2) * mesh.texcoords.size());
+
+	Triangle* triangles = (Triangle*)rtcSetNewGeometryBuffer(geometry, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT3, sizeof(Triangle), mesh.triangles.size());
+	std::memcpy(triangles, (void*)mesh.triangles.data(), sizeof(Triangle) * mesh.triangles.size());
+
+	rtcCommitGeometry(geometry);
+	unsigned geomID = rtcAttachGeometry(embree_scene, geometry);
+	rtcReleaseGeometry(geometry);
+	return geomID;
 }

@@ -36,7 +36,7 @@ namespace Lykta {
 			float aspect = resolution.x / (float)resolution.y;
 			fov = 45.f;
 			nearClip = EPS;
-			farClip = 1e9;
+			farClip = 1e9f;
 			cameraToWorld = glm::lookAt(glm::vec3(0, 0, 5), glm::vec3(0), glm::vec3(0, 1, 0));
 			projectionToCamera = glm::perspective(fov, aspect, nearClip, farClip);
 			makeProjectionToCamera(aspect);
@@ -65,8 +65,7 @@ namespace Lykta {
 			
 			ray.o = glm::vec3(cameraToWorld * glm::vec4(0, 0, 0, 1));
 			ray.d = glm::vec3(cameraToWorld * d);
-			ray.tmin = nearClip * zinv;
-			ray.tmax = farClip * zinv;
+			ray.t = glm::vec2(nearClip * zinv, farClip * zinv);
 
 			return glm::vec3(1.f);
 		}

@@ -8,6 +8,8 @@ void Lykta::Renderer::openScene(const std::string& filename) {
 	scene = std::unique_ptr<Scene>(Scene::parseFile(filename));
 	resolution = scene->getResolution();
 	image = std::vector<glm::vec3>(resolution.x * resolution.y);
+	Ray ray(glm::vec3(0, 1, 0), glm::vec3(0, -1, 0), glm::vec2(0, INFINITY));
+	scene->intersect(ray);
 }
 
 void Lykta::Renderer::renderFrame() {
