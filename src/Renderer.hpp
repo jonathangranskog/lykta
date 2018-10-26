@@ -3,14 +3,14 @@
 #include <vector>
 #include <string>
 #include <glm/vec3.hpp>
-#include "Scene.hpp"
 #include "Integrator.hpp"
+#include "Scene.hpp"
 
 namespace Lykta {
 	class Renderer {
 	private:
 		std::vector<glm::vec3> image;
-		std::unique_ptr<Scene> scene;
+		std::shared_ptr<Scene> scene;
 		std::unique_ptr<Integrator> integrator;
 		glm::ivec2 resolution;
 		unsigned iteration;

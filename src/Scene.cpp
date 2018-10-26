@@ -31,7 +31,8 @@ Lykta::Scene* Lykta::Scene::parseFile(const std::string& filename) {
 
 	// Create temporary geometry
 	Mesh mesh = Mesh();
-	std::vector<glm::vec3> vertices;
+	std::vector<glm::vec3> vertices, normals;
+	std::vector<glm::vec2> texcoords;
 	std::vector<Triangle> triangles;
 	Triangle t1 = Triangle(0, 1, 2);
 	Triangle t2 = Triangle(1, 3, 2);
@@ -39,11 +40,27 @@ Lykta::Scene* Lykta::Scene::parseFile(const std::string& filename) {
 	glm::vec3 v1 = glm::vec3(-1, -1, +1);
 	glm::vec3 v2 = glm::vec3(+1, -1, -1);
 	glm::vec3 v3 = glm::vec3(+1, -1, +1);
+	glm::vec3 n0 = glm::vec3(0, 1, 0);
+	glm::vec3 n1 = glm::vec3(0, 1, 0);
+	glm::vec3 n2 = glm::vec3(0, 1, 0);
+	glm::vec3 n3 = glm::vec3(0, 1, 0);
+	glm::vec2 uv0 = glm::vec2(0, 0);
+	glm::vec2 uv1 = glm::vec2(0, 1);
+	glm::vec2 uv2 = glm::vec2(1, 0);
+	glm::vec2 uv3 = glm::vec2(1, 1);
+	
 	vertices.push_back(v0); vertices.push_back(v1);
 	vertices.push_back(v2); vertices.push_back(v3);
+	normals.push_back(n0); normals.push_back(n1);
+	normals.push_back(n2); normals.push_back(n3);
+	texcoords.push_back(uv0); texcoords.push_back(uv1);
+	texcoords.push_back(uv2); texcoords.push_back(uv3);
+
 	triangles.push_back(t1); triangles.push_back(t2);
 	mesh.setPositions(vertices);
 	mesh.setTriangles(triangles);
+	mesh.setNormals(normals);
+	mesh.setTextureCoordinates(texcoords);
 	meshes.push_back(mesh);
 	scene->meshes = meshes;
 
@@ -64,19 +81,10 @@ void Lykta::Scene::generateEmbreeScene() {
 
 unsigned Lykta::Scene::createEmbreeGeometry(Mesh& mesh) {
 	RTCGeometry geometry = rtcNewGeometry(embree_device, RTC_GEOMETRY_TYPE_TRIANGLE);
-	
-	glm::vec3* vertices = (glm::vec3*) rtcSetNewGeometryBuffer(geometry, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT3, sizeof(glm::vec3), mesh.positions.size());
-	std::memcpy(vertices, (void*)mesh.positions.data(), sizeof(glm::vec3) * mesh.positions.size());
-	
-	glm::vec3* normals = (glm::vec3*) rtcSetNewGeometryBuffer(geometry, RTC_BUFFER_TYPE_NORMAL, 0, RTC_FORMAT_FLOAT3, sizeof(glm::vec3), mesh.normals.size());
-	std::memcpy(normals, (void*)mesh.normals.data(), sizeof(glm::vec3) * mesh.normals.size());
-
-	glm::vec2* texcoords = (glm::vec2*) rtcSetNewGeometryBuffer(geometry, RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE, 0, RTC_FORMAT_FLOAT2, sizeof(glm::vec2), mesh.texcoords.size());
-	std::memcpy(texcoords, (void*)mesh.texcoords.data(), sizeof(glm::vec2) * mesh.texcoords.size());
-
-	Triangle* triangles = (Triangle*)rtcSetNewGeometryBuffer(geometry, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT3, sizeof(Triangle), mesh.triangles.size());
-	std::memcpy(triangles, (void*)mesh.triangles.data(), sizeof(Triangle) * mesh.triangles.size());
-
+	rtcSetSharedGeometryBuffer(geometry, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT3, (void*)mesh.positions.data(), 0, sizeof(glm::vec3), mesh.positions.size());
+	rtcSetSharedGeometryBuffer(geometry, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT3, (void*)mesh.triangles.data(), 0, sizeof(Triangle), mesh.triangles.size());
+	rtcSetSharedGeometryBuffer(geometry, RTC_BUFFER_TYPE_NORMAL, 0, RTC_FORMAT_FLOAT3, (void*)mesh.normals.data(), 0, sizeof(glm::vec3), mesh.normals.size());
+	rtcSetSharedGeometryBuffer(geometry, RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE, 0, RTC_FORMAT_FLOAT2, (void*)mesh.texcoords.data(), 0, sizeof(glm::vec2), mesh.texcoords.size());
 	rtcCommitGeometry(geometry);
 	unsigned geomID = rtcAttachGeometry(embree_scene, geometry);
 	rtcReleaseGeometry(geometry);
