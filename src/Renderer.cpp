@@ -1,10 +1,10 @@
 #include <random>
+#include <iostream>
 #include "Renderer.hpp"
+#include "omp.h"
 
 void Lykta::Renderer::openScene(const std::string& filename) {
 	iteration = 0;
-
-	// TODO: Initialize the scene here!
 	scene = std::shared_ptr<Lykta::Scene>(Scene::parseFile(filename));
 	resolution = scene->getResolution();
 	image = std::vector<glm::vec3>(resolution.x * resolution.y);
@@ -14,6 +14,7 @@ void Lykta::Renderer::openScene(const std::string& filename) {
 void Lykta::Renderer::renderFrame() {
 	float blend = 1.f / (iteration + 1);
 
+	#pragma omp parallel for
 	for (int j = 0; j < resolution.y; j++) {
 		for (int i = 0; i < resolution.x; i++) {
 			
