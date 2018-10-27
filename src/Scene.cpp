@@ -27,41 +27,10 @@ Lykta::Scene* Lykta::Scene::parseFile(const std::string& filename) {
 	Scene* scene = new Scene();
 	scene->camera = std::unique_ptr<Camera>(new PerspectiveCamera());
 
-	std::vector<Mesh> meshes = std::vector<Mesh>();
-
-	// Create temporary geometry
-	Mesh mesh = Mesh();
-	std::vector<glm::vec3> vertices, normals;
-	std::vector<glm::vec2> texcoords;
-	std::vector<Triangle> triangles;
-	Triangle t1 = Triangle(0, 1, 2);
-	Triangle t2 = Triangle(1, 3, 2);
-	glm::vec3 v0 = glm::vec3(-1, -1, -1);
-	glm::vec3 v1 = glm::vec3(-1, -1, +1);
-	glm::vec3 v2 = glm::vec3(+1, -1, -1);
-	glm::vec3 v3 = glm::vec3(+1, -1, +1);
-	glm::vec3 n0 = glm::vec3(0, 1, 0);
-	glm::vec3 n1 = glm::vec3(0, 1, 0);
-	glm::vec3 n2 = glm::vec3(0, 1, 0);
-	glm::vec3 n3 = glm::vec3(0, 1, 0);
-	glm::vec2 uv0 = glm::vec2(0, 0);
-	glm::vec2 uv1 = glm::vec2(0, 1);
-	glm::vec2 uv2 = glm::vec2(1, 0);
-	glm::vec2 uv3 = glm::vec2(1, 1);
+	std::vector<Mesh> f1 = Mesh::openObj("E:/Projects/lykta/spheres.obj");
+	std::vector<Mesh> meshes;
+	meshes.insert(meshes.end(), f1.begin(), f1.end());
 	
-	vertices.push_back(v0); vertices.push_back(v1);
-	vertices.push_back(v2); vertices.push_back(v3);
-	normals.push_back(n0); normals.push_back(n1);
-	normals.push_back(n2); normals.push_back(n3);
-	texcoords.push_back(uv0); texcoords.push_back(uv1);
-	texcoords.push_back(uv2); texcoords.push_back(uv3);
-
-	triangles.push_back(t1); triangles.push_back(t2);
-	mesh.setPositions(vertices);
-	mesh.setTriangles(triangles);
-	mesh.setNormals(normals);
-	mesh.setTextureCoordinates(texcoords);
-	meshes.push_back(mesh);
 	scene->meshes = meshes;
 
 	scene->generateEmbreeScene();

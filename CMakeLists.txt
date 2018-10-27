@@ -37,9 +37,11 @@ add_definitions(${NANOGUI_EXTRA_DEFS})
 file(GLOB src_files
 		${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp
-		${CMAKE_CURRENT_SOURCE_DIR}/src/*.h	
-	)
+		${CMAKE_CURRENT_SOURCE_DIR}/src/*.h
+)
 
-add_executable(lykta ${src_files})
+set(tiny_obj_files ${CMAKE_CURRENT_SOURCE_DIR}/src/tinyobj/tiny_obj_loader.h ${CMAKE_CURRENT_SOURCE_DIR}/src/tinyobj/tiny_obj_loader.cc)
+
+add_executable(lykta ${src_files} ${tiny_obj_files})
 
 target_link_libraries(lykta nanogui ${NANOGUI_EXTRA_LIBS} ${EMBREE_LIBRARY} OpenMP::OpenMP_CXX)

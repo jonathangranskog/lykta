@@ -1,7 +1,6 @@
 #include <random>
 #include <iostream>
 #include "Renderer.hpp"
-#include "omp.h"
 
 void Lykta::Renderer::openScene(const std::string& filename) {
 	iteration = 0;

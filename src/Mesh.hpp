@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include <vector>
+#include <string>
 
 namespace Lykta {
 	class Mesh {	
@@ -29,5 +30,7 @@ namespace Lykta {
 		void setTextureCoordinates(std::vector<glm::vec2>& tex) {
 			texcoords = tex;
 		}
+
+		static std::vector<Mesh> openObj(const std::string& filename);
 	};
 }

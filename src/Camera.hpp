@@ -39,7 +39,7 @@ namespace Lykta {
 
 	public:
 		PerspectiveCamera() {
-			resolution = glm::ivec2(1024, 768);
+			resolution = glm::ivec2(800, 300);
 			aspect = resolution.x / (float)resolution.y;
 			fov = 45.f;
 			nearClip = EPS;
@@ -63,7 +63,7 @@ namespace Lykta {
 									const glm::vec2& pixel,
 									const glm::vec2& sample) const 
 		{
-			glm::vec2 imageplane_pos = glm::vec2(pixel.x / resolution.x * 2 - 1, -aspect * (pixel.y / resolution.y * 2 - 1));
+			glm::vec2 imageplane_pos = glm::vec2(pixel.x / resolution.x * 2 - 1, -1.f/aspect * (pixel.y / resolution.y * 2 - 1));
 			glm::vec4 p = projectionToCamera * glm::vec4(imageplane_pos, 1, 1);
 			glm::vec4 d = glm::vec4(glm::normalize(glm::vec3(p)), 0);
 			
