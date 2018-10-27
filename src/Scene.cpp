@@ -2,7 +2,7 @@
 #include "common.h"
 #include "Scene.hpp"
 
-bool Lykta::Scene::intersect(const Ray& r) const {
+bool Lykta::Scene::intersect(const Lykta::Ray& r, Lykta::Hit& result) const {
 	RTCIntersectContext ctx;
 	rtcInitIntersectContext(&ctx);
 	RTCRay ray;
@@ -19,7 +19,23 @@ bool Lykta::Scene::intersect(const Ray& r) const {
 	rayhit.hit = hit;
 	rtcIntersect1(embree_scene, &ctx, &rayhit);
 	
-	return (rayhit.hit.geomID != RTC_INVALID_GEOMETRY_ID);
+	if (rayhit.hit.geomID != RTC_INVALID_GEOMETRY_ID) {
+		unsigned geomID = rayhit.hit.geomID;
+		result.pos = r.o + ray.tfar * r.d;
+		
+		const Mesh& mesh = meshes[geomID];
+		const Triangle& tri = mesh.triangles[rayhit.hit.primID];
+		float u = rayhit.hit.u, v = rayhit.hit.v;
+		float w = 1.f - u - v;
+
+		result.normal = w * mesh.normals[tri.x] + u * mesh.normals[tri.y] + v * mesh.normals[tri.z];
+		result.normal = glm::normalize(result.normal);
+		result.texcoord = w * mesh.texcoords[tri.x] + u * mesh.texcoords[tri.y] + v * mesh.texcoords[tri.z];
+
+		return true;
+	}
+
+	return false;
 }
 
 // Static function for parsing a scene file

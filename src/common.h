@@ -19,6 +19,13 @@ namespace Lykta {
 		Ray(glm::vec3 orig, glm::vec3 dir, glm::vec2 tz) : o(orig), d(dir), t(tz) {}
 	};
 
+	struct Hit {
+		glm::vec2 texcoord;
+		glm::vec3 pos;
+		glm::vec3 normal;
+		unsigned material;
+	};
+
 	struct Triangle {
 		unsigned x, y, z;
 
