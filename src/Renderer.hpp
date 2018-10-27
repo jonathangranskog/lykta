@@ -5,6 +5,7 @@
 #include <glm/vec3.hpp>
 #include "Integrator.hpp"
 #include "Scene.hpp"
+#include "random.h"
 
 namespace Lykta {
 	class Renderer {
@@ -12,6 +13,7 @@ namespace Lykta {
 		std::vector<glm::vec3> image;
 		std::shared_ptr<Scene> scene;
 		std::unique_ptr<Integrator> integrator;
+		std::vector<RandomSampler> samplers;
 		glm::ivec2 resolution;
 		unsigned iteration;
 
