@@ -21,7 +21,7 @@ bool Lykta::Scene::intersect(const Lykta::Ray& r, Lykta::Hit& result) const {
 	
 	if (rayhit.hit.geomID != RTC_INVALID_GEOMETRY_ID) {
 		unsigned geomID = rayhit.hit.geomID;
-		result.pos = r.o + ray.tfar * r.d;
+		result.pos = r.o + rayhit.ray.tfar * r.d;
 		
 		const Mesh& mesh = meshes[geomID];
 		const Triangle& tri = mesh.triangles[rayhit.hit.primID];
@@ -36,6 +36,18 @@ bool Lykta::Scene::intersect(const Lykta::Ray& r, Lykta::Hit& result) const {
 	}
 
 	return false;
+}
+
+bool Lykta::Scene::shadowIntersect(const Lykta::Ray& r) const {
+	RTCIntersectContext ctx;
+	rtcInitIntersectContext(&ctx);
+	RTCRay ray;
+	ray.org_x = r.o.x; ray.org_y = r.o.y; ray.org_z = r.o.z;
+	ray.dir_x = r.d.x; ray.dir_y = r.d.y; ray.dir_z = r.d.z;
+	ray.tnear = r.t.x; ray.tfar = r.t.y; ray.time = 0.f;
+
+	rtcOccluded1(embree_scene, &ctx, &ray);
+	return ray.tfar < r.t.y;
 }
 
 // Static function for parsing a scene file

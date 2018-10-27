@@ -33,7 +33,7 @@ void Lykta::Renderer::renderFrame() {
 			scene->getCamera()->createRay(ray, imageSample, sampler->next2D());
 
 			// Third integrate
-			glm::vec3 result = integrator->evaluate(ray, scene);
+			glm::vec3 result = integrator->evaluate(ray, scene, sampler);
 
 			if (iteration > 0)
 				image[j * resolution.x + i] = (1 - blend) * image[j * resolution.x + i] + blend * result;

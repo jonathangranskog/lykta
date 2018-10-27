@@ -3,6 +3,7 @@
 #include <glm/vec3.hpp>
 #include <memory>
 #include "common.h"
+#include "random.h"
 #include "Scene.hpp"
 
 namespace Lykta {
@@ -15,7 +16,7 @@ namespace Lykta {
 		
 		virtual void preprocess(const Scene* scene) {}
 
-		virtual glm::vec3 evaluate(const Ray& ray, const std::shared_ptr<Scene> scene) = 0;
+		virtual glm::vec3 evaluate(const Ray& ray, const std::shared_ptr<Scene> scene, RandomSampler* sampler) = 0;
 
 		virtual void postprocess(const Scene* scene) {}
 
@@ -23,10 +24,10 @@ namespace Lykta {
 
     class AOIntegrator : public Integrator{
     private:
-        float maxlen = 1.f;
+        float maxlen = 10.f;
     public:
         AOIntegrator() {}
         ~AOIntegrator() {}
-        virtual glm::vec3 evaluate(const Ray& ray, const std::shared_ptr<Scene> scene);
+        virtual glm::vec3 evaluate(const Ray& ray, const std::shared_ptr<Scene> scene, RandomSampler* sampler);
     };
 }

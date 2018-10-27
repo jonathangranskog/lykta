@@ -37,38 +37,40 @@
 #define PCG32_DEFAULT_STREAM 0xda3e39cb94b95bdbULL
 #define PCG32_MULT           0x5851f42d4c957f2dULL
 
-struct RandomSampler {
+namespace Lykta {
+	struct RandomSampler {
 
-	uint64_t state, inc;
+		uint64_t state, inc;
 
-	RandomSampler() : state(PCG32_DEFAULT_STATE), inc(PCG32_DEFAULT_STREAM) {}
+		RandomSampler() : state(PCG32_DEFAULT_STATE), inc(PCG32_DEFAULT_STREAM) {}
 
-	void seed(uint64_t initstate, uint64_t initseq = 1) {
-		state = 0U;
-		inc = (initseq << 1u) | 1u;
-		nextUInt();
-		state += initstate;
-		nextUInt();
-	}
+		void seed(uint64_t initstate, uint64_t initseq = 1) {
+			state = 0U;
+			inc = (initseq << 1u) | 1u;
+			nextUInt();
+			state += initstate;
+			nextUInt();
+		}
 
-	uint32_t nextUInt() {
-		uint64_t oldstate = state;
-		state = oldstate * PCG32_MULT + inc;
-		uint32_t xorshifted = (uint32_t)(((oldstate >> 18u) ^ oldstate) >> 27u);
-		uint32_t rot = (uint32_t)(oldstate >> 59u);
-		return (xorshifted >> rot) | (xorshifted << ((~rot + 1u) & 31));
-	}
+		uint32_t nextUInt() {
+			uint64_t oldstate = state;
+			state = oldstate * PCG32_MULT + inc;
+			uint32_t xorshifted = (uint32_t)(((oldstate >> 18u) ^ oldstate) >> 27u);
+			uint32_t rot = (uint32_t)(oldstate >> 59u);
+			return (xorshifted >> rot) | (xorshifted << ((~rot + 1u) & 31));
+		}
 
-	float next() {
-		union {
-			uint32_t u;
-			float f;
-		} x;
-		x.u = (nextUInt() >> 9) | 0x3f800000u;
-		return x.f - 1.0f;
-	}
+		float next() {
+			union {
+				uint32_t u;
+				float f;
+			} x;
+			x.u = (nextUInt() >> 9) | 0x3f800000u;
+			return x.f - 1.0f;
+		}
 
-	glm::vec2 next2D() {
-		return glm::vec2(next(), next());
-	}
-};
+		glm::vec2 next2D() {
+			return glm::vec2(next(), next());
+		}
+	};
+}

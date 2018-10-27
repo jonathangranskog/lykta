@@ -4,7 +4,7 @@
 #include <glm/vec2.hpp>
 #include <glm/mat4x4.hpp>
 
-#define EPS 1e-6f
+#define EPS 1e-4f
 #define M_PI 3.14159265359
 #define INV_PI 0.31830988618
 
@@ -31,6 +31,29 @@ namespace Lykta {
 
 		Triangle() {};
 		Triangle(unsigned x_, unsigned y_, unsigned z_) : x(x_), y(y_), z(z_) {}
+	};
+
+
+	struct Basis {
+		glm::vec3 x, y, z;
+
+		// http://jcgt.org/published/0006/01/01/
+		Basis(const glm::vec3& n) {
+			float sign = copysignf(1.0f, n.z);
+			const float a = -1.0f / (sign + n.z);
+			const float b = n.x * n.y * a;
+			x = glm::vec3(1.0f + sign * n.x * n.x * a, sign * b, -sign * n.x);
+			y = glm::vec3(b, sign + n.y * n.y * a, -n.y);
+			z = n;
+		}
+
+		glm::vec3 toLocalSpace(const glm::vec3& v) {
+			return glm::vec3(glm::dot(x, v), glm::dot(y, v), glm::dot(z, v));
+		}
+
+		glm::vec3 fromLocalSpace(const glm::vec3& v) {
+			return v.x * x + v.y * y + v.z * z;
+		}
 	};
 
 	inline glm::mat4 lookAt(const glm::vec3& eye, const glm::vec3& center, const glm::vec3& up) {
