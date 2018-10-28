@@ -39,12 +39,12 @@ namespace Lykta {
 
 	public:
 		PerspectiveCamera() {
-			resolution = glm::ivec2(800, 300);
+			resolution = glm::ivec2(800, 800);
 			aspect = resolution.x / (float)resolution.y;
 			fov = 45.f;
 			nearClip = EPS;
 			farClip = 1e5f;
-			cameraToWorld = lookAt(glm::vec3(0, 2, 2), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+			cameraToWorld = lookAt(glm::vec3(0, 0.5, 1.05), glm::vec3(0, 0.5, 0), glm::vec3(0, 1, 0));
 			projectionToCamera = makeProjectionToCamera(fov, aspect, nearClip, farClip);
 		}
 

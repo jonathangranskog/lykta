@@ -30,4 +30,13 @@ namespace Lykta {
         ~AOIntegrator() {}
         virtual glm::vec3 evaluate(const Ray& ray, const std::shared_ptr<Scene> scene, RandomSampler* sampler);
     };
+
+	class BSDFIntegrator : public Integrator {
+	private:
+
+	public:
+		BSDFIntegrator() {}
+		~BSDFIntegrator() {}
+		virtual glm::vec3 evaluate(const Ray& ray, const std::shared_ptr<Scene> scene, RandomSampler* sampler);
+	};
 }

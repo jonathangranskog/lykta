@@ -8,24 +8,19 @@
 #include <embree3/rtcore_scene.h>
 #include "Camera.hpp"
 #include "Mesh.hpp"
+#include "material.h"
 
 namespace Lykta {
 	class Scene {
 	private:
-		// TODO: Add camera
 		std::unique_ptr<Camera> camera;
-
-		// TODO: Add vector of lights
-
-		// TODO: Add vector of materials
-
-		// TODO: Add vector of meshes
+		std::vector<SurfaceMaterial> materials;
 		std::vector<Mesh> meshes;
-
+		// TODO: Add vector of lights
+		// TODO: Add vector of textures
 		// Embree specific variables
 		RTCDevice embree_device;
 		RTCScene embree_scene;
-
 
 	public:
 		Scene() {};
@@ -36,6 +31,10 @@ namespace Lykta {
 
 		const glm::ivec2 getResolution() const {
 			return camera->getResolution();
+		}
+
+		const SurfaceMaterial& getMaterial(unsigned id) {
+			return materials[id];
 		}
 
 		const std::unique_ptr<Camera>& getCamera() const {

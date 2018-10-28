@@ -23,14 +23,15 @@ bool Lykta::Scene::intersect(const Lykta::Ray& r, Lykta::Hit& result) const {
 		unsigned geomID = rayhit.hit.geomID;
 		result.pos = r.o + rayhit.ray.tfar * r.d;
 		
-		const Mesh& mesh = meshes[geomID];
-		const Triangle& tri = mesh.triangles[rayhit.hit.primID];
+		const Lykta::Mesh& mesh = meshes[geomID];
+		const Lykta::Triangle& tri = mesh.triangles[rayhit.hit.primID];
 		float u = rayhit.hit.u, v = rayhit.hit.v;
 		float w = 1.f - u - v;
 
 		result.normal = w * mesh.normals[tri.x] + u * mesh.normals[tri.y] + v * mesh.normals[tri.z];
 		result.normal = glm::normalize(result.normal);
 		result.texcoord = w * mesh.texcoords[tri.x] + u * mesh.texcoords[tri.y] + v * mesh.texcoords[tri.z];
+		result.material = mesh.materialId;
 
 		return true;
 	}
@@ -52,15 +53,62 @@ bool Lykta::Scene::shadowIntersect(const Lykta::Ray& r) const {
 
 // Static function for parsing a scene file
 Lykta::Scene* Lykta::Scene::parseFile(const std::string& filename) {
-	Scene* scene = new Scene();
-	scene->camera = std::unique_ptr<Camera>(new PerspectiveCamera());
+	Lykta::Scene* scene = new Lykta::Scene();
+	scene->camera = std::unique_ptr<Lykta::Camera>(new Lykta::PerspectiveCamera());
+	Lykta::SurfaceMaterial material;
+	material.diffuseColor = glm::vec3(1);
+	material.emissiveColor = glm::vec3(0);
+	scene->materials = std::vector<Lykta::SurfaceMaterial>();
+	scene->materials.push_back(material);
 
-	std::vector<Mesh> f1 = Mesh::openObj("E:/Projects/lykta/spheres.obj");
-	std::vector<Mesh> meshes;
+	Lykta::SurfaceMaterial material2;
+	material2.diffuseColor = glm::vec3(1, 0, 0);
+	material2.emissiveColor = glm::vec3(0);
+	scene->materials.push_back(material2);
+
+	Lykta::SurfaceMaterial material3;
+	material3.diffuseColor = glm::vec3(0, 1, 0);
+	material3.emissiveColor = glm::vec3(0);
+	scene->materials.push_back(material3);
+
+	Lykta::SurfaceMaterial material4;
+	material4.diffuseColor = glm::vec3(0);
+	material4.emissiveColor = glm::vec3(10);
+	scene->materials.push_back(material4);
+
+	std::vector<Lykta::Mesh> f1 = Lykta::Mesh::openObj("E:/Projects/lykta/white_walls.obj");
+	for (Lykta::Mesh& mesh : f1) {
+		mesh.materialId = 0;
+	}
+
+	std::vector<Lykta::Mesh> f2 = Lykta::Mesh::openObj("E:/Projects/lykta/right_wall.obj");
+	for (Lykta::Mesh& mesh : f2) {
+		mesh.materialId = 1;
+	}
+
+	std::vector<Lykta::Mesh> f3 = Lykta::Mesh::openObj("E:/Projects/lykta/left_wall.obj");
+	for (Lykta::Mesh& mesh : f3) {
+		mesh.materialId = 2;
+	}
+
+	std::vector<Lykta::Mesh> f4 = Lykta::Mesh::openObj("E:/Projects/lykta/emitter.obj");
+	for (Lykta::Mesh& mesh : f4) {
+		mesh.materialId = 3;
+	}
+
+	std::vector<Lykta::Mesh> f5 = Lykta::Mesh::openObj("E:/Projects/lykta/spheres.obj");
+	for (Lykta::Mesh& mesh : f5) {
+		mesh.materialId = 0;
+	}
+
+	std::vector<Lykta::Mesh> meshes;
 	meshes.insert(meshes.end(), f1.begin(), f1.end());
-	
+	meshes.insert(meshes.end(), f2.begin(), f2.end());
+	meshes.insert(meshes.end(), f3.begin(), f3.end());
+	meshes.insert(meshes.end(), f4.begin(), f4.end());
+	meshes.insert(meshes.end(), f5.begin(), f5.end());
 	scene->meshes = meshes;
-
+	
 	scene->generateEmbreeScene();
 	return scene;
 }
@@ -80,8 +128,6 @@ unsigned Lykta::Scene::createEmbreeGeometry(Mesh& mesh) {
 	RTCGeometry geometry = rtcNewGeometry(embree_device, RTC_GEOMETRY_TYPE_TRIANGLE);
 	rtcSetSharedGeometryBuffer(geometry, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT3, (void*)mesh.positions.data(), 0, sizeof(glm::vec3), mesh.positions.size());
 	rtcSetSharedGeometryBuffer(geometry, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT3, (void*)mesh.triangles.data(), 0, sizeof(Triangle), mesh.triangles.size());
-	rtcSetSharedGeometryBuffer(geometry, RTC_BUFFER_TYPE_NORMAL, 0, RTC_FORMAT_FLOAT3, (void*)mesh.normals.data(), 0, sizeof(glm::vec3), mesh.normals.size());
-	rtcSetSharedGeometryBuffer(geometry, RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE, 0, RTC_FORMAT_FLOAT2, (void*)mesh.texcoords.data(), 0, sizeof(glm::vec2), mesh.texcoords.size());
 	rtcCommitGeometry(geometry);
 	unsigned geomID = rtcAttachGeometry(embree_scene, geometry);
 	rtcReleaseGeometry(geometry);

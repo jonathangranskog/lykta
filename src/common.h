@@ -5,8 +5,8 @@
 #include <glm/mat4x4.hpp>
 
 #define EPS 1e-4f
-#define M_PI 3.14159265359
-#define INV_PI 0.31830988618
+#define M_PI 3.14159265359f
+#define INV_PI 0.31830988618f
 
 namespace Lykta {
 
@@ -16,6 +16,9 @@ namespace Lykta {
 		glm::vec2 t;
 
 		Ray() {};
+		Ray(glm::vec3 orig, glm::vec3 dir) : o(orig), d(dir) {
+			t = glm::vec2(EPS, INFINITY);
+		}
 		Ray(glm::vec3 orig, glm::vec3 dir, glm::vec2 tz) : o(orig), d(dir), t(tz) {}
 	};
 
@@ -32,7 +35,6 @@ namespace Lykta {
 		Triangle() {};
 		Triangle(unsigned x_, unsigned y_, unsigned z_) : x(x_), y(y_), z(z_) {}
 	};
-
 
 	struct Basis {
 		glm::vec3 x, y, z;
@@ -68,5 +70,13 @@ namespace Lykta {
 		result[3] = glm::vec4(eye, 1);
 
 		return result;
+	}
+
+	inline float maxComponent(const glm::vec3& v) {
+		return fmaxf(v.x, fmaxf(v.y, v.z));
+	}
+
+	inline float luminance(const glm::vec3& v) {
+		return v.x * 0.212671f + v.y * 0.71516f + v.z * 0.072169f;
 	}
 }

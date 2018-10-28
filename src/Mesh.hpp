@@ -11,6 +11,7 @@ namespace Lykta {
 		std::vector<glm::vec3> normals;
 		std::vector<glm::vec2> texcoords;
 		std::vector<Triangle> triangles;
+		unsigned materialId = 0;
 
 		Mesh() {}
 		~Mesh() {}
