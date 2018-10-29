@@ -37,6 +37,13 @@ add_definitions(${NANOGUI_EXTRA_DEFS})
 # tinyobj
 set(tiny_obj_files ${CMAKE_CURRENT_SOURCE_DIR}/src/tinyobj/tiny_obj_loader.h ${CMAKE_CURRENT_SOURCE_DIR}/src/tinyobj/tiny_obj_loader.cc)
 
+# rapidjson
+set(RAPIDJSON_BUILD_DOC OFF CACHE BOOL " " FORCE)
+set(RAPIDJSON_BUILD_EXAMPLES OFF CACHE BOOL " " FORCE)
+set(RAPIDJSON_BUILD_TESTS OFF CACHE BOOL " " FORCE)
+add_subdirectory(ext/rapidjson/rapidjson)
+include_directories(ext/rapidjson/rapidjson/include)
+
 file(GLOB src_files
 		${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp
