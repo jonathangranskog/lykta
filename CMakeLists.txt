@@ -34,13 +34,14 @@ include_directories(ext/nanogui/include)
 include_directories(${NANOGUI_EXTRA_INCS})
 add_definitions(${NANOGUI_EXTRA_DEFS})
 
+# tinyobj
+set(tiny_obj_files ${CMAKE_CURRENT_SOURCE_DIR}/src/tinyobj/tiny_obj_loader.h ${CMAKE_CURRENT_SOURCE_DIR}/src/tinyobj/tiny_obj_loader.cc)
+
 file(GLOB src_files
 		${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp
 		${CMAKE_CURRENT_SOURCE_DIR}/src/*.h
 )
-
-set(tiny_obj_files ${CMAKE_CURRENT_SOURCE_DIR}/src/tinyobj/tiny_obj_loader.h ${CMAKE_CURRENT_SOURCE_DIR}/src/tinyobj/tiny_obj_loader.cc)
 
 add_executable(lykta ${src_files} ${tiny_obj_files})
 
