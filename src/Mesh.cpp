@@ -39,16 +39,24 @@ std::vector<Lykta::Mesh> Lykta::Mesh::openObj(const std::string& filename) {
 		
 		std::vector<Lykta::Triangle> triangles = std::vector<Lykta::Triangle>();
 		std::vector<glm::vec3> vertices = std::vector<glm::vec3>();
-		
+		std::vector<glm::vec3> normals = std::vector<glm::vec3>();
+		std::vector<glm::vec2> texcoords = std::vector<glm::vec2>();
+
 		// Read vertices
 		for (size_t v = 0; v < attrib.vertices.size() / 3; v++) {
 			glm::vec3 vertex = glm::vec3(static_cast<float>(attrib.vertices[3 * v + 0]), static_cast<float>(attrib.vertices[3 * v + 1]), static_cast<float>(attrib.vertices[3 * v + 2]));
 			vertices.push_back(vertex);
 		}
 
-		// Assume equal number of normals and texture coordinates as vertices.
-		std::vector<glm::vec3> normals = std::vector<glm::vec3>(vertices.size());
-		std::vector<glm::vec2> texcoords = std::vector<glm::vec2>(vertices.size());
+		for (size_t v = 0; v < attrib.normals.size() / 3; v++) {
+			glm::vec3 normal = glm::vec3(static_cast<float>(attrib.normals[3 * v + 0]), static_cast<float>(attrib.normals[3 * v + 1]), static_cast<float>(attrib.normals[3 * v + 2]));
+			normals.push_back(normal);
+		}
+
+		for (size_t v = 0; v < attrib.texcoords.size() / 2; v++) {
+			glm::vec2 texcoord = glm::vec2(static_cast<float>(attrib.texcoords[2 * v + 0]), static_cast<float>(attrib.texcoords[2 * v + 1]));
+			texcoords.push_back(texcoord);
+		}
 
 		// Read triangles
 		size_t index_offset = 0;
@@ -56,32 +64,17 @@ std::vector<Lykta::Mesh> Lykta::Mesh::openObj(const std::string& filename) {
 			size_t fnum = shapes[i].mesh.num_face_vertices[f];
 
 			// Assuming triangulated...
-			unsigned x = indices[index_offset + 0].vertex_index;
-			unsigned y = indices[index_offset + 1].vertex_index;
-			unsigned z = indices[index_offset + 2].vertex_index;
-
-			Lykta::Triangle triangle = Lykta::Triangle();
-			triangle.x = x;
-			triangle.y = y;
-			triangle.z = z;
+			Lykta::Triangle triangle;
+			triangle.px = indices[index_offset + 0].vertex_index;
+			triangle.py = indices[index_offset + 1].vertex_index;
+			triangle.pz = indices[index_offset + 2].vertex_index;
+			triangle.nx = indices[index_offset + 0].normal_index;
+			triangle.ny = indices[index_offset + 1].normal_index;
+			triangle.nz = indices[index_offset + 2].normal_index;
+			triangle.tx = indices[index_offset + 0].texcoord_index;
+			triangle.ty = indices[index_offset + 1].texcoord_index;
+			triangle.tz = indices[index_offset + 2].texcoord_index;
 			triangles.push_back(triangle);
-
-			// Make sure that normals and texture coords are in same positions as vertices
-			unsigned nx = indices[index_offset + 0].normal_index;
-			unsigned ny = indices[index_offset + 1].normal_index;
-			unsigned nz = indices[index_offset + 2].normal_index;
-			unsigned tx = indices[index_offset + 0].texcoord_index;
-			unsigned ty = indices[index_offset + 1].texcoord_index;
-			unsigned tz = indices[index_offset + 2].texcoord_index;
-
-			normals[x] = glm::vec3(static_cast<float>(attrib.normals[nx * 3]), static_cast<float>(attrib.normals[nx * 3 + 1]), static_cast<float>(attrib.normals[nx * 3 + 2]));
-			normals[y] = glm::vec3(static_cast<float>(attrib.normals[ny * 3]), static_cast<float>(attrib.normals[ny * 3 + 1]), static_cast<float>(attrib.normals[ny * 3 + 2]));
-			normals[z] = glm::vec3(static_cast<float>(attrib.normals[nz * 3]), static_cast<float>(attrib.normals[nz * 3 + 1]), static_cast<float>(attrib.normals[nz * 3 + 2]));
-
-			texcoords[x] = glm::vec2(static_cast<float>(attrib.texcoords[tx * 2]), static_cast<float>(attrib.texcoords[tx * 2 + 1]));
-			texcoords[y] = glm::vec2(static_cast<float>(attrib.texcoords[ty * 2]), static_cast<float>(attrib.texcoords[ty * 2 + 1]));
-			texcoords[z] = glm::vec2(static_cast<float>(attrib.texcoords[tz * 2]), static_cast<float>(attrib.texcoords[tz * 2 + 1]));
-		
 			index_offset += fnum;
 		}
 

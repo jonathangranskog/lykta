@@ -28,9 +28,21 @@ bool Lykta::Scene::intersect(const Lykta::Ray& r, Lykta::Hit& result) const {
 		float u = rayhit.hit.u, v = rayhit.hit.v;
 		float w = 1.f - u - v;
 
-		result.normal = w * mesh.normals[tri.x] + u * mesh.normals[tri.y] + v * mesh.normals[tri.z];
-		result.normal = glm::normalize(result.normal);
-		result.texcoord = w * mesh.texcoords[tri.x] + u * mesh.texcoords[tri.y] + v * mesh.texcoords[tri.z];
+		if (tri.nx != -1 && tri.ny != -1 && tri.nz != -1) {
+			result.normal = w * mesh.normals[tri.nx] + u * mesh.normals[tri.ny] + v * mesh.normals[tri.nz];
+			result.normal = glm::normalize(result.normal);
+		}
+		else {
+			result.normal = glm::vec3(rayhit.hit.Ng_x, rayhit.hit.Ng_y, rayhit.hit.Ng_z);
+		}
+
+		if (tri.tx != -1 && tri.ty != -1 && tri.tz != -1) {
+			result.texcoord = w * mesh.texcoords[tri.tx] + u * mesh.texcoords[tri.ty] + v * mesh.texcoords[tri.tz];
+		}
+		else {
+			result.texcoord = glm::vec2(0);
+		}
+
 		result.material = mesh.materialId;
 
 		return true;

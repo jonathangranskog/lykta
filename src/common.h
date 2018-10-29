@@ -30,10 +30,9 @@ namespace Lykta {
 	};
 
 	struct Triangle {
-		unsigned x, y, z;
-
-		Triangle() {};
-		Triangle(unsigned x_, unsigned y_, unsigned z_) : x(x_), y(y_), z(z_) {}
+		unsigned px, py, pz;
+		int nx, ny, nz;
+		int tx, ty, tz;
 	};
 
 	struct Basis {
