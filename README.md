@@ -10,6 +10,8 @@ Future plans include possibly creating a Houdini plug-in or making the renderer 
 
 This project uses CMake version 3.12 or higher for building. Everything should work automatically on Windows and Linux (not tested), but on OS X some additional work is necessary.
 
+The project requires Embree to be installed on the computer and discoverable by CMake. Follow the installation instructions at: https://embree.github.io/downloads.html
+
 Clone the repository using Git
 ```
 git clone --recursive https://github.com/jonathangranskog/lykta.git
