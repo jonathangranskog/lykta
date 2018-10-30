@@ -104,6 +104,7 @@ namespace Lykta {
 				filetypes.push_back(jsontype);
 				std::string filename = nanogui::file_dialog(filetypes, false);
 				renderer->openScene(filename);
+				glfwSetWindowSize(glfwWindow(), renderer->getResolution().x, renderer->getResolution().y);
 			});
 
 			// Integrator box
