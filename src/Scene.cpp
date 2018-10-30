@@ -1,6 +1,12 @@
+#include <rapidjson/rapidjson.h>
+#include <rapidjson/document.h>
+#include <cassert>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include "common.h"
 #include "Scene.hpp"
+#include "JSONHelper.hpp"
 
 bool Lykta::Scene::intersect(const Lykta::Ray& r, Lykta::Hit& result) const {
 	RTCIntersectContext ctx;
@@ -66,61 +72,26 @@ bool Lykta::Scene::shadowIntersect(const Lykta::Ray& r) const {
 // Static function for parsing a scene file
 Lykta::Scene* Lykta::Scene::parseFile(const std::string& filename) {
 	Lykta::Scene* scene = new Lykta::Scene();
-	scene->camera = std::unique_ptr<Lykta::Camera>(new Lykta::PerspectiveCamera());
-	Lykta::SurfaceMaterial material;
-	material.diffuseColor = glm::vec3(1);
-	material.emissiveColor = glm::vec3(0);
-	scene->materials = std::vector<Lykta::SurfaceMaterial>();
-	scene->materials.push_back(material);
-
-	Lykta::SurfaceMaterial material2;
-	material2.diffuseColor = glm::vec3(1, 0, 0);
-	material2.emissiveColor = glm::vec3(0);
-	scene->materials.push_back(material2);
-
-	Lykta::SurfaceMaterial material3;
-	material3.diffuseColor = glm::vec3(0, 1, 0);
-	material3.emissiveColor = glm::vec3(0);
-	scene->materials.push_back(material3);
-
-	Lykta::SurfaceMaterial material4;
-	material4.diffuseColor = glm::vec3(0);
-	material4.emissiveColor = glm::vec3(10);
-	scene->materials.push_back(material4);
-
-	std::vector<Lykta::Mesh> f1 = Lykta::Mesh::openObj("E:/Projects/lykta/white_walls.obj");
-	for (Lykta::Mesh& mesh : f1) {
-		mesh.materialId = 0;
-	}
-
-	std::vector<Lykta::Mesh> f2 = Lykta::Mesh::openObj("E:/Projects/lykta/right_wall.obj");
-	for (Lykta::Mesh& mesh : f2) {
-		mesh.materialId = 1;
-	}
-
-	std::vector<Lykta::Mesh> f3 = Lykta::Mesh::openObj("E:/Projects/lykta/left_wall.obj");
-	for (Lykta::Mesh& mesh : f3) {
-		mesh.materialId = 2;
-	}
-
-	std::vector<Lykta::Mesh> f4 = Lykta::Mesh::openObj("E:/Projects/lykta/emitter.obj");
-	for (Lykta::Mesh& mesh : f4) {
-		mesh.materialId = 3;
-	}
-
-	std::vector<Lykta::Mesh> f5 = Lykta::Mesh::openObj("E:/Projects/lykta/spheres.obj");
-	for (Lykta::Mesh& mesh : f5) {
-		mesh.materialId = 0;
-	}
-
-	std::vector<Lykta::Mesh> meshes;
-	meshes.insert(meshes.end(), f1.begin(), f1.end());
-	meshes.insert(meshes.end(), f2.begin(), f2.end());
-	meshes.insert(meshes.end(), f3.begin(), f3.end());
-	meshes.insert(meshes.end(), f4.begin(), f4.end());
-	meshes.insert(meshes.end(), f5.begin(), f5.end());
-	scene->meshes = meshes;
 	
+	std::ifstream in(filename.c_str());
+	std::stringstream sstr;
+	sstr << in.rdbuf();
+
+	rapidjson::Document jsonDocument;
+	jsonDocument.Parse(sstr.str().c_str());
+	
+	assert(jsonDocument.IsObject());
+
+	std::map<std::string, std::pair<unsigned, Lykta::SurfaceMaterial> > materials = Lykta::JSONHelper::readMaterials(jsonDocument);
+	scene->meshes = Lykta::JSONHelper::readMeshes(jsonDocument, materials);
+
+	unsigned numMaterials = materials.size();
+	std::vector<Lykta::SurfaceMaterial> materialVector = std::vector<Lykta::SurfaceMaterial>(numMaterials);
+	for (auto it = materials.begin(); it != materials.end(); it++) {
+		materialVector[it->second.first] = it->second.second;
+	}
+	scene->materials = materialVector;
+	scene->camera = std::unique_ptr<Lykta::Camera>(Lykta::JSONHelper::readCamera(jsonDocument));
 	scene->generateEmbreeScene();
 	return scene;
 }

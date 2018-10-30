@@ -18,7 +18,7 @@ namespace Lykta {
 			
 			// Initialize renderer
 			renderer = std::unique_ptr<Renderer>(new Renderer());
-			renderer->openScene("");
+			renderer->openScene("E:/Projects/lykta/test_json.json");
 			
 			// Initialize user interface
 			initializeGUI();
