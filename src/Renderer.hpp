@@ -13,12 +13,15 @@ namespace Lykta {
 		std::vector<glm::vec3> image;
 		std::shared_ptr<Scene> scene;
 		std::unique_ptr<Integrator> integrator;
+		Integrator::Type integratorType;
 		std::vector<RandomSampler> samplers;
 		glm::ivec2 resolution;
 		unsigned iteration;
 
 	public:
 		void openScene(const std::string& filename);
+		void refresh();
+		
 		void renderFrame();
 
 		const std::vector<glm::vec3>& getImage() const {
@@ -27,6 +30,10 @@ namespace Lykta {
 
 		const glm::ivec2& getResolution() const {
 			return resolution;
+		}
+
+		void changeIntegrator(Integrator::Type type) {
+			integratorType = type;
 		}
 
 	};

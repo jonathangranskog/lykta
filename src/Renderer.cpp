@@ -4,12 +4,27 @@
 #include "omp.h"
 
 void Lykta::Renderer::openScene(const std::string& filename) {
-	iteration = 0;
 	scene = std::shared_ptr<Lykta::Scene>(Scene::parseFile(filename));
 	resolution = scene->getResolution();
+	refresh();
+}
+
+void Lykta::Renderer::refresh() {
 	image = std::vector<glm::vec3>(resolution.x * resolution.y);
-	integrator = std::unique_ptr<Lykta::Integrator>(new Lykta::BSDFIntegrator());
-	
+	iteration = 0;
+
+	// Select integrator
+	if (integratorType == Integrator::Type::BSDF) {
+		integrator = std::unique_ptr<Integrator>(new BSDFIntegrator());
+	}
+	else if (integratorType == Integrator::Type::AO) {
+		integrator = std::unique_ptr<Integrator>(new AOIntegrator());
+	}
+
+	integrator->preprocess(scene);
+
+	// Init samplers
+	samplers.clear();
 	samplers = std::vector<RandomSampler>(omp_get_max_threads());
 	for (int i = 0; i < omp_get_max_threads(); i++) {
 		samplers[i].seed(i);

@@ -3,6 +3,11 @@
 #include <nanogui/glutil.h>
 #include <nanogui/screen.h>
 #include <nanogui/layout.h>
+#include <nanogui/window.h>
+#include <nanogui/button.h>
+#include <nanogui/entypo.h>
+#include <nanogui/slider.h>
+#include <nanogui/label.h>
 #include "Renderer.hpp"
 
 namespace Lykta {
@@ -12,6 +17,8 @@ namespace Lykta {
 		uint32_t texture = 0;
 		std::unique_ptr<nanogui::GLShader> shader;
 		std::unique_ptr<Renderer> renderer;
+		nanogui::Window* window;
+		nanogui::ComboBox* integratorBox;
 		
 	public:
 		Application() : nanogui::Screen(Eigen::Vector2i(1024, 768), "lykta") {
@@ -80,15 +87,24 @@ namespace Lykta {
 			glDeleteTextures(1, &texture);
 		}
 
+		void changeIntegrator() {
+			renderer->changeIntegrator((Integrator::Type) integratorBox->selectedIndex());
+			renderer->refresh();
+		}
+
 		void initializeGUI() {
-			// TODO: Add windows and so on
 			glfwSetWindowSize(glfwWindow(), renderer->getResolution().x, renderer->getResolution().y);
+			window = new nanogui::Window(this, "Settings");
+			window->setPosition(nanogui::Vector2i(15, 15));
+			window->setLayout(new nanogui::GroupLayout());
+			new nanogui::Label(window, "Integrator", "sans-bold");
+			integratorBox = new nanogui::ComboBox(window, { "BSDF", "AO" });
+			integratorBox->setCallback([&](int) { changeIntegrator(); });
 			performLayout(mNVGContext);
 		}
 
 		void drawContents() {
 			// Drawing function for the image. 
-			// TODO: Allow change of screen size based on render resolution
 			renderer->renderFrame();
 			const glm::ivec2& resolution = renderer->getResolution();
 

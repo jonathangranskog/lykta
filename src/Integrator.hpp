@@ -8,17 +8,24 @@
 
 namespace Lykta {
 	class Scene;
+
+	
     
     class Integrator {
 
 	public:
+		enum Type {
+			BSDF = 0,
+			AO = 1
+		};
+
 		virtual ~Integrator() {}
 		
-		virtual void preprocess(const Scene* scene) {}
+		virtual void preprocess(const std::shared_ptr<Scene> scene) {}
 
 		virtual glm::vec3 evaluate(const Ray& ray, const std::shared_ptr<Scene> scene, RandomSampler* sampler) = 0;
 
-		virtual void postprocess(const Scene* scene) {}
+		virtual void postprocess(const std::shared_ptr<Scene> scene) {}
 
 	};
 
