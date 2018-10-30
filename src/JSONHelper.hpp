@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 #include <tuple>
+#include <filesystem>
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/document.h>
 #include "Camera.hpp"
@@ -18,6 +19,7 @@ namespace Lykta {
 		static glm::vec3 readVector3(const std::string& name, const rapidjson::Value& val) {
 			glm::vec3 vec = glm::vec3(0.f);
 			const rapidjson::Value& arr = val[name.c_str()];
+			assert(arr.Size() == 3);
 			vec.x = arr[0].GetFloat();
 			vec.y = arr[1].GetFloat();
 			vec.z = arr[2].GetFloat();
@@ -27,6 +29,7 @@ namespace Lykta {
 		static glm::ivec2 readIVector2(const std::string& name, const rapidjson::Value& val) {
 			glm::ivec2 vec = glm::ivec2(0);
 			const rapidjson::Value& arr = val[name.c_str()];
+			assert(arr.Size() == 2);
 			vec.x = arr[0].GetInt();
 			vec.y = arr[1].GetInt();
 			return vec;
@@ -58,7 +61,9 @@ namespace Lykta {
 		}
 
 	public:
-		static std::vector<Mesh> readMeshes(rapidjson::Document& document, std::map<std::string, std::pair<unsigned, SurfaceMaterial>>& materials) {
+		static std::vector<Mesh> readMeshes(rapidjson::Document& document, 
+			std::map<std::string, std::pair<unsigned, SurfaceMaterial>>& materials,
+			std::filesystem::path& scene_path) {
 			std::vector<Mesh> meshes = std::vector<Mesh>();
 
 			if (!document.HasMember("objects")) return meshes;
@@ -73,10 +78,17 @@ namespace Lykta {
 				assert(file.IsString());
 				assert(mat.IsString());
 				std::string filename = std::string(file.GetString());
-				std::string materialLookup = std::string(mat.GetString());
+				std::filesystem::path filepath = std::filesystem::path(filename);
+				
+				if (!std::filesystem::is_regular_file(filepath)) {
+					std::cerr << filepath.string() << " could not be found -- skipping!" << std::endl;
+					continue;
+				}
+
 				std::vector<Mesh> imported = Mesh::openObj(filename);
 				
 				// Get material
+				std::string materialLookup = std::string(mat.GetString());
 				assert(materials.find(materialLookup) != materials.end());
 				unsigned index = materials[materialLookup].first;
 				for (Mesh& m : imported) m.materialId = index;
