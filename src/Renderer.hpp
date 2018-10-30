@@ -19,6 +19,8 @@ namespace Lykta {
 		unsigned iteration;
 
 	public:
+		Renderer();
+
 		void openScene(const std::string& filename);
 		void refresh();
 		
@@ -30,6 +32,10 @@ namespace Lykta {
 
 		const glm::ivec2& getResolution() const {
 			return resolution;
+		}
+
+		bool isSceneOpen() const {
+			return scene != nullptr;
 		}
 
 		void changeIntegrator(Integrator::Type type) {

@@ -3,14 +3,20 @@
 #include "Renderer.hpp"
 #include "omp.h"
 
+Lykta::Renderer::Renderer() {
+	resolution = glm::ivec2(800, 800);
+	image = std::vector<glm::vec3>(resolution.x * resolution.y);
+	integratorType = Integrator::Type::BSDF;
+}
+
 void Lykta::Renderer::openScene(const std::string& filename) {
 	scene = std::shared_ptr<Lykta::Scene>(Scene::parseFile(filename));
 	resolution = scene->getResolution();
+	image = std::vector<glm::vec3>(resolution.x * resolution.y);
 	refresh();
 }
 
 void Lykta::Renderer::refresh() {
-	image = std::vector<glm::vec3>(resolution.x * resolution.y);
 	iteration = 0;
 
 	// Select integrator

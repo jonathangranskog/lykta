@@ -25,7 +25,6 @@ namespace Lykta {
 			
 			// Initialize renderer
 			renderer = std::unique_ptr<Renderer>(new Renderer());
-			renderer->openScene("E:/Projects/lykta/test_json.json");
 			
 			// Initialize user interface
 			initializeGUI();
@@ -97,15 +96,27 @@ namespace Lykta {
 			window = new nanogui::Window(this, "Settings");
 			window->setPosition(nanogui::Vector2i(15, 15));
 			window->setLayout(new nanogui::GroupLayout());
+			// File open button, 0x0000F1A9 is the code for the folder icon
+			nanogui::Button* openButton = new nanogui::Button(window, "Open File", 0x0000F1A9);
+			openButton->setCallback([this]() {
+				std::pair<std::string, std::string> jsontype = std::pair<std::string, std::string>("json", "Scene File");
+				std::vector<std::pair<std::string, std::string> > filetypes;
+				filetypes.push_back(jsontype);
+				std::string filename = nanogui::file_dialog(filetypes, false);
+				renderer->openScene(filename);
+			});
+
+			// Integrator box
 			new nanogui::Label(window, "Integrator", "sans-bold");
 			integratorBox = new nanogui::ComboBox(window, { "BSDF", "AO" });
 			integratorBox->setCallback([&](int) { changeIntegrator(); });
+			
 			performLayout(mNVGContext);
 		}
 
 		void drawContents() {
 			// Drawing function for the image. 
-			renderer->renderFrame();
+			if (renderer->isSceneOpen()) renderer->renderFrame();
 			const glm::ivec2& resolution = renderer->getResolution();
 
 			glActiveTexture(GL_TEXTURE0);
