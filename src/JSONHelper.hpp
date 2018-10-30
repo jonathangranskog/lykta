@@ -32,6 +32,31 @@ namespace Lykta {
 			return vec;
 		}
 
+		static glm::mat4 readTransform(const std::string& name, const rapidjson::Value& val) {
+			glm::mat4 matrix = glm::mat4(1.f);
+			const rapidjson::Value& transformValue = val[name.c_str()];
+
+			glm::vec3 translate = (transformValue.HasMember("translate")) ? readVector3("translate", transformValue) : glm::vec3(0.f);
+			glm::vec3 rotate = (transformValue.HasMember("rotate")) ? readVector3("rotate", transformValue) : glm::vec3(0.f);
+			glm::vec3 scale = (transformValue.HasMember("scale")) ? readVector3("scale", transformValue) : glm::vec3(1.f);
+			rotate *= (M_PI / 180.f);
+
+			// Default order
+			std::string order = "SRT";
+			if (transformValue.HasMember("order")) order = std::string(transformValue["order"].GetString());
+			for (char& c : order) {
+				if (c == 'S') matrix = glm::scale(matrix, scale);
+				else if (c == 'R') {
+					matrix = glm::rotate(matrix, rotate.x, glm::vec3(1, 0, 0));
+					matrix = glm::rotate(matrix, rotate.y, glm::vec3(0, 1, 0));
+					matrix = glm::rotate(matrix, rotate.z, glm::vec3(0, 0, 1));
+				}
+				else if (c == 'T') matrix = glm::translate(matrix, translate);
+			}
+
+			return matrix;
+		}
+
 	public:
 		static std::vector<Mesh> readMeshes(rapidjson::Document& document, std::map<std::string, std::pair<unsigned, SurfaceMaterial>>& materials) {
 			std::vector<Mesh> meshes = std::vector<Mesh>();
@@ -107,10 +132,10 @@ namespace Lykta {
 					cameraToWorld = lookAt(center, lookat, glm::vec3(0, 1, 0));
 				}
 				else if (cameraValue.HasMember("transform")) {
-					// TODO: Read transform components
+					cameraToWorld = readTransform("transform", cameraValue);
 				}
 				
-				glm::ivec2 resolution = readVector3("resolution", cameraValue);
+				glm::ivec2 resolution = readIVector2("resolution", cameraValue);
 				float fov = cameraValue["fov"].GetFloat();
 				float nearClip = cameraValue["nearclip"].GetFloat();
 				float farClip = cameraValue["farclip"].GetFloat();

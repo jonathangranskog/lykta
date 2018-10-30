@@ -34,3 +34,43 @@ brew install libomp
 ```
 
 The CMake build process assumes the default Brew installation on OS X so if you change your install paths then you might have to modify the CMakeLists.txt file. 
+
+### Example scene file:
+
+```
+{
+  "camera" : {
+    "type": "PerspectiveCamera",
+    "resolution" :  [800, 800],
+    "center": [ 0.0, 0.5, 1.05 ],
+    "lookat": [0.0, 0.5, 0.0],
+    "fov": 45.0,
+    "nearclip": 0.01,
+    "farclip" : 100.0
+  },
+  "objects": [
+    {
+
+      "file": "E:/Projects/lykta/spheres.obj",
+      "material": "white"
+    },
+    {
+
+      "file": "E:/Projects/lykta/emitter.obj",
+      "material": "emitter"
+    }
+  ],
+  "materials": [
+    {
+      "name": "white",
+      "diffuseColor": [1.0, 1.0, 1.0],
+      "emission" : [0.0, 0.0, 0.0]
+    },
+    {
+      "name": "emitter",
+      "diffuseColor": [ 0.0, 0.0, 0.0 ],
+      "emissiveColor" :  [10.0, 10.0, 10.0]
+    }
+  ]
+}
+```
