@@ -7,6 +7,7 @@
 #include <glm/common.hpp>
 #include <glm/geometric.hpp>
 
+#undef M_PI
 #define EPS 1e-4f
 #define M_PI 3.14159265359f
 #define INV_PI 0.31830988618f
@@ -80,5 +81,25 @@ namespace Lykta {
 
 	inline float luminance(const glm::vec3& v) {
 		return v.x * 0.212671f + v.y * 0.71516f + v.z * 0.072169f;
+	}
+
+	inline float localCosTheta(const glm::vec3& v) {
+		return v.z;
+	}
+
+	inline float localSinTheta2(const glm::vec3& v) {
+		return 1 - v.z * v.z;
+	}
+
+	inline float localSinTheta(const glm::vec3& v) {
+		float tmp = localSinTheta2(v);
+		if (tmp <= 0.f) return 0.f;
+		return sqrtf(tmp);
+	}
+
+	inline float localTanTheta(const glm::vec3& v) {
+		float tmp = 1 - v.z * v.z;
+		if (tmp <= 0.f) return 0.f;
+		return sqrtf(tmp) / v.z;
 	}
 }

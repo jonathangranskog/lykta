@@ -116,6 +116,18 @@ namespace Lykta {
 				if (arr[i].HasMember("emissiveColor")) mat.emissiveColor = readVector3("emissiveColor", arr[i]);
 				else mat.emissiveColor = glm::vec3(0.f);
 
+				if (arr[i].HasMember("roughness")) mat.roughness = arr[i]["roughness"].GetFloat();
+				else mat.roughness = 0.5f;
+
+				if (arr[i].HasMember("specular")) mat.specular = arr[i]["specular"].GetFloat();
+				else mat.specular = 0.f;
+
+				if (arr[i].HasMember("metallic")) mat.metallic = arr[i]["metallic"].GetFloat();
+				else mat.metallic = 0.f;
+
+				if (arr[i].HasMember("ior")) mat.ior = arr[i]["ior"].GetFloat();
+				else mat.ior = 1.33f;
+
 				const rapidjson::Value& name = arr[i]["name"];
 				assert(name.IsString());
 				materialMap[name.GetString()] = std::pair<unsigned, SurfaceMaterial>((unsigned)i, mat);
