@@ -4,3 +4,6 @@
 [submodule "ext/rapidjson/rapidjson"]
 	path = ext/rapidjson/rapidjson
 	url = https://github.com/Tencent/rapidjson.git
+[submodule "ext/filesystem"]
+	path = ext/filesystem
+	url = https://github.com/wjakob/filesystem.git

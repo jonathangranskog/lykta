@@ -4,7 +4,8 @@
 #include <string>
 #include <map>
 #include <tuple>
-#include <filesystem>
+#include <filesystem/path.h>
+#include <filesystem/resolver.h>
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/document.h>
 #include "Camera.hpp"
@@ -63,7 +64,7 @@ namespace Lykta {
 	public:
 		static std::vector<Mesh> readMeshes(rapidjson::Document& document, 
 			std::map<std::string, std::pair<unsigned, SurfaceMaterial>>& materials,
-			std::filesystem::path& scene_path) {
+			filesystem::path& scene_path) {
 			std::vector<Mesh> meshes = std::vector<Mesh>();
 
 			if (!document.HasMember("objects")) return meshes;
@@ -78,10 +79,10 @@ namespace Lykta {
 				assert(file.IsString());
 				assert(mat.IsString());
 				std::string filename = std::string(file.GetString());
-				std::filesystem::path filepath = std::filesystem::path(filename);
+				filesystem::path filepath = filesystem::path(filename);
 				
-				if (!std::filesystem::is_regular_file(filepath)) {
-					std::cerr << filepath.string() << " could not be found -- skipping!" << std::endl;
+				if (!filepath.is_file()) {
+					std::cerr << filepath.make_absolute() << " could not be found -- skipping!" << std::endl;
 					continue;
 				}
 

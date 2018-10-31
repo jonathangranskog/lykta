@@ -44,6 +44,9 @@ set(RAPIDJSON_BUILD_TESTS OFF CACHE BOOL " " FORCE)
 add_subdirectory(ext/rapidjson/rapidjson)
 include_directories(ext/rapidjson/rapidjson/include)
 
+# filesystem
+include_directories(ext/filesystem)
+
 file(GLOB src_files
 		${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp

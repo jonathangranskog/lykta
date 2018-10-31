@@ -82,8 +82,8 @@ Lykta::Scene* Lykta::Scene::parseFile(const std::string& filename) {
 	
 	assert(jsonDocument.IsObject());
 
-	std::filesystem::path scene_path = std::filesystem::path(filename);
-	scene_path = scene_path.remove_filename();
+	filesystem::path scene_path = filesystem::path(filename);
+	scene_path = scene_path.parent_path();
 
 	std::map<std::string, std::pair<unsigned, Lykta::SurfaceMaterial> > materials = Lykta::JSONHelper::readMaterials(jsonDocument);
 	scene->meshes = Lykta::JSONHelper::readMeshes(jsonDocument, materials, scene_path);
