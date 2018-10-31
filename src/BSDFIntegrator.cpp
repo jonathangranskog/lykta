@@ -20,7 +20,7 @@ glm::vec3 Lykta::BSDFIntegrator::evaluate(const Lykta::Ray& ray, const std::shar
 
 		// RR
 		float s = sampler->next();
-		float success = fminf(0.99f, Lykta::luminance(throughput));
+		float success = fminf(0.75f, Lykta::luminance(throughput));
 		if (s < (1 - success)) break;
 		throughput /= success;
 

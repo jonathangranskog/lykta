@@ -3,6 +3,9 @@
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
 #include <glm/mat4x4.hpp>
+#include <glm/vec4.hpp>
+#include <glm/common.hpp>
+#include <glm/geometric.hpp>
 
 #define EPS 1e-4f
 #define M_PI 3.14159265359f
