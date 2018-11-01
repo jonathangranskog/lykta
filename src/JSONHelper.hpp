@@ -9,7 +9,7 @@
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/document.h>
 #include "Camera.hpp"
-#include "material.h"
+#include "Material.hpp"
 #include "Mesh.hpp"
 
 namespace Lykta {
@@ -109,24 +109,34 @@ namespace Lykta {
 			for (size_t i = 0; i < arr.Size(); i++) {
 				assert(arr[i].HasMember("name"));
 				
-				SurfaceMaterial mat;
-				if (arr[i].HasMember("diffuseColor")) mat.diffuseColor = readVector3("diffuseColor", arr[i]);
-				else mat.diffuseColor = glm::vec3(1.f);
+				glm::vec3 diffuseColor;
+				if (arr[i].HasMember("diffuseColor")) diffuseColor = readVector3("diffuseColor", arr[i]);
+				else diffuseColor = glm::vec3(1.f);
 
-				if (arr[i].HasMember("emissiveColor")) mat.emissiveColor = readVector3("emissiveColor", arr[i]);
-				else mat.emissiveColor = glm::vec3(0.f);
+				glm::vec3 emissiveColor;
+				if (arr[i].HasMember("emissiveColor")) emissiveColor = readVector3("emissiveColor", arr[i]);
+				else emissiveColor = glm::vec3(0.f);
 
-				if (arr[i].HasMember("roughness")) mat.roughness = arr[i]["roughness"].GetFloat();
-				else mat.roughness = 0.5f;
+				float roughness;
+				if (arr[i].HasMember("roughness")) roughness = arr[i]["roughness"].GetFloat();
+				else roughness = 0.3f;
+				roughness = clamp(roughness, 0.05f, 1);
 
-				if (arr[i].HasMember("specular")) mat.specular = arr[i]["specular"].GetFloat();
-				else mat.specular = 0.f;
+				float specular;
+				if (arr[i].HasMember("specular")) specular = arr[i]["specular"].GetFloat();
+				else specular = 0.f;
+				specular = clamp(specular, 0, 1);
 
-				if (arr[i].HasMember("metallic")) mat.metallic = arr[i]["metallic"].GetFloat();
-				else mat.metallic = 0.f;
+				float specularTint;
+				if (arr[i].HasMember("specularTint")) specularTint = arr[i]["specularTint"].GetFloat();
+				else specularTint = 0.f;
+				specularTint = clamp(specularTint, 0, 1);
 
-				if (arr[i].HasMember("ior")) mat.ior = arr[i]["ior"].GetFloat();
-				else mat.ior = 1.33f;
+				float ior;
+				if (arr[i].HasMember("ior")) ior = arr[i]["ior"].GetFloat();
+				else ior = 1.33f;
+
+				SurfaceMaterial mat = SurfaceMaterial(diffuseColor, emissiveColor, specular, specularTint, roughness, ior);
 
 				const rapidjson::Value& name = arr[i]["name"];
 				assert(name.IsString());

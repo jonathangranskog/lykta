@@ -79,6 +79,10 @@ namespace Lykta {
 		return fmaxf(v.x, fmaxf(v.y, v.z));
 	}
 
+	inline float clamp(float a, float min, float max) {
+		return fmaxf(fminf(a, max), min);
+	}
+
 	inline float luminance(const glm::vec3& v) {
 		return v.x * 0.212671f + v.y * 0.71516f + v.z * 0.072169f;
 	}
@@ -102,4 +106,25 @@ namespace Lykta {
 		if (tmp <= 0.f) return 0.f;
 		return sqrtf(tmp) / v.z;
 	}
+
+	// Not Schlick approximated fresnel
+	inline float fresnel(float cti, float extIOR, float intIOR) {
+		float etaI = extIOR, etaT = intIOR;
+		if (extIOR == intIOR) return 0.f;
+		if (cti < 0.f) {
+			float tmp = etaI;
+			etaI = etaT;
+			etaT = tmp;
+			cti = -cti;
+		}
+		float eta = etaI / etaT;
+		float stt2 = eta * eta * (1 - cti * cti);
+		if (stt2 > 1.f) return 1.f; // total internal reflection
+
+		float ctt = sqrtf(1.f - stt2);
+		float rs = (etaI * cti - etaT * ctt) / (etaI * cti + etaT * ctt);
+		float rp = (etaT * cti - etaI * ctt) / (etaT * cti + etaI * ctt);
+		return 0.5f * (rs * rs + rp * rp);
+	}
+
 }

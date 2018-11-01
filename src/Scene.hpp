@@ -8,7 +8,7 @@
 #include <embree3/rtcore_scene.h>
 #include "Camera.hpp"
 #include "Mesh.hpp"
-#include "material.h"
+#include "Material.hpp"
 
 namespace Lykta {
 	class Scene {

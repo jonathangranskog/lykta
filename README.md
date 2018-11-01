@@ -4,7 +4,7 @@
 
 Lykta is a CPU renderer that is not meant for any practical usage. It's purely a hobby renderer for myself to use when I want to implement or try new ideas. However, the goal is to keep the renderer fairly simple, e.g. support only triangle meshes, a single material model and only mesh emitters. 
 
-Future plans include possibly creating a Houdini plug-in or making the renderer run on both CPU and GPU simultaneously. 
+Future plans include possibly creating a Houdini plug-in...
 
 ### Building
 

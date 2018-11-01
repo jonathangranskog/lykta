@@ -21,18 +21,19 @@ namespace Lykta {
 		return v.z * INV_PI;
 	}
 
-	inline glm::vec3 squareToBeckmann(const glm::vec2& sample, float alpha) {
-		float theta = atanf(sqrtf(-alpha * alpha * logf(1 - sample.x)));
+	// Inverse sampling according to D
+	inline glm::vec3 squareToGGX(const glm::vec2& sample, float alpha) {
+		float a2 = alpha * alpha;
+		float theta = acosf(sqrtf((1 - sample.x) / (sample.x * (a2 - 1) + 1)));
 		float phi = 2 * M_PI * sample.y;
 		return glm::vec3(sinf(theta) * cosf(phi), sinf(theta) * sinf(phi), cosf(theta));
 	}
 
-	inline float beckmannPdf(const glm::vec3& wh, float alpha) {
-		float costheta = localCosTheta(wh);
-		if (costheta < 0.f) return 0.f;
-		float tantheta = localTanTheta(wh);
-		float nominator = expf(-tantheta * tantheta / (alpha * alpha));
-		float denominator = M_PI * alpha * alpha * costheta * costheta * costheta;
-		return nominator / denominator;
+	inline float GGXPdf(const glm::vec3& wh, const glm::vec3& wi, float alpha) {
+		float nh = localCosTheta(wh);
+		float a2 = alpha * alpha;
+		float tmp = nh * nh * (a2 - 1) + 1;
+		float D = a2 / (M_PI * tmp * tmp);
+		return nh * D / (4 * localCosTheta(wi));
 	}
 }
