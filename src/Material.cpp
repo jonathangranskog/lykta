@@ -1,5 +1,5 @@
 #include "Material.hpp"
-#include "warp.h"
+#include "Sampling.hpp"
 
 using namespace Lykta;
 
@@ -32,7 +32,7 @@ glm::vec3 SurfaceMaterial::evalSpecular(SurfaceInteraction& si) const {
 	float denom = 1.f / (4 * fabsf(localCosTheta(si.wi) * localCosTheta(si.wo)));
 	
 	glm::vec3 color = (1.f - specularTint) * glm::vec3(1.f) + specularTint * diffuseColor;
-	si.pdf = GGXPdf(wh, si.wi, alpha);
+	si.pdf = Sampling::GGXPdf(wh, si.wi, alpha);
 	
 	return D * F * G * denom * color;
 }
@@ -42,18 +42,18 @@ glm::vec3 SurfaceMaterial::evalDiffuse(SurfaceInteraction& si) const {
 		si.pdf = 0.f;
 		return glm::vec3(0.f);
 	}
-
-	si.pdf = cosineHemispherePdf(si.wo);
+	
+	si.pdf = Sampling::cosineHemispherePdf(si.wo);
 	return INV_PI * diffuseColor;
 }
 
 void SurfaceMaterial::sampleSpecular(const glm::vec2& sample, SurfaceInteraction& si) const {
-	glm::vec3 wh = squareToGGX(sample, alpha);
+	glm::vec3 wh = Sampling::GGX(sample, alpha);
 	si.wo = -si.wi + 2 * glm::dot(si.wi, wh) * wh;
 }
 
 void SurfaceMaterial::sampleDiffuse(const glm::vec2& sample, SurfaceInteraction& si) const {
-	si.wo = squareToCosineHemisphere(sample);
+	si.wo = Sampling::cosineHemisphere(sample);
 }
 
 glm::vec3 SurfaceMaterial::evaluate(SurfaceInteraction& si) const {

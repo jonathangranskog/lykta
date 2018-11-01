@@ -1,5 +1,4 @@
 #include "Integrator.hpp"
-#include "warp.h"
 
 glm::vec3 Lykta::BSDFIntegrator::evaluate(const Lykta::Ray& ray, const std::shared_ptr<Lykta::Scene> scene, Lykta::RandomSampler* sampler) {
 	glm::vec3 result = glm::vec3(0.f);

@@ -174,8 +174,10 @@ namespace Lykta {
 				float fov = cameraValue["fov"].GetFloat();
 				float nearClip = cameraValue["nearclip"].GetFloat();
 				float farClip = cameraValue["farclip"].GetFloat();
-				
-				Camera* cam = new PerspectiveCamera(cameraToWorld, resolution, fov, nearClip, farClip);
+				float apertureRadius = (cameraValue.HasMember("apertureRadius")) ? cameraValue["apertureRadius"].GetFloat() : 0.f;
+				float focusDistance = (cameraValue.HasMember("focusDistance")) ? cameraValue["focusDistance"].GetFloat() : 1.f;
+
+				Camera* cam = new PerspectiveCamera(cameraToWorld, resolution, fov, nearClip, farClip, apertureRadius, focusDistance);
 				return cam;
 			}
 

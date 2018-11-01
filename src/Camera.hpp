@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "Sampling.hpp"
 #include <glm/vec2.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -36,6 +37,8 @@ namespace Lykta {
 		float fov;
 		float nearClip;
 		float farClip;
+		float apertureRadius;
+		float focusDistance;
 
 	public:
 		PerspectiveCamera() {
@@ -48,7 +51,7 @@ namespace Lykta {
 			projectionToCamera = makeProjectionToCamera(fov, aspect, nearClip, farClip);
 		}
 
-		PerspectiveCamera(glm::mat4 camToWorld, glm::ivec2 res, float f, float nc, float fc) 
+		PerspectiveCamera(glm::mat4 camToWorld, glm::ivec2 res, float f, float nc, float fc, float ar = 0.f, float fd = 1.f) 
 		{
 			aspect = res.x / (float)res.y;
 			cameraToWorld = camToWorld;
@@ -56,6 +59,8 @@ namespace Lykta {
 			fov = f;
 			nearClip = nc;
 			farClip = fc;
+			apertureRadius = ar;
+			focusDistance = fd;
 			projectionToCamera = makeProjectionToCamera(fov, aspect, nearClip, farClip);
 		}
 
@@ -65,10 +70,15 @@ namespace Lykta {
 		{
 			glm::vec2 imageplane_pos = glm::vec2(pixel.x / resolution.x * 2 - 1, -1.f/aspect * (pixel.y / resolution.y * 2 - 1));
 			glm::vec4 p = projectionToCamera * glm::vec4(imageplane_pos, 1, 1);
-			glm::vec4 d = glm::vec4(glm::normalize(glm::vec3(p)), 0);
+			glm::vec3 d = glm::normalize(glm::vec3(p));
+			float invZ = 1.f / d.z;
 			
-			ray.o = glm::vec3(cameraToWorld * glm::vec4(0, 0, 0, 1));
-			ray.d = glm::vec3(cameraToWorld * d);
+			glm::vec3 focusPoint = focusDistance * invZ * d;
+			glm::vec3 apertureSample = glm::vec3(Sampling::uniformDisk(sample) * apertureRadius, 0);
+			glm::vec3 dir = glm::normalize(focusPoint - apertureSample);
+
+			ray.o = glm::vec3(cameraToWorld * glm::vec4(apertureSample, 1));
+			ray.d = glm::vec3(cameraToWorld * glm::vec4(dir, 0));
 			ray.d = glm::normalize(ray.d);
 			ray.t = glm::vec2(nearClip, farClip);
 
