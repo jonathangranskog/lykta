@@ -63,7 +63,7 @@ glm::vec3 SurfaceMaterial::evaluate(SurfaceInteraction& si) const {
 	float specularPdf = si.pdf;
 
 	si.pdf = (1 - specular) * diffusePdf + specular * specularPdf;
-	if (si.pdf < FLT_EPSILON) return glm::vec3(0.f);
+	if (si.pdf < FLT_EPS) return glm::vec3(0.f);
 	return (1 - specular) * diffuseEval + specular * specularEval;
 }
 
@@ -82,6 +82,6 @@ glm::vec3 SurfaceMaterial::sample(const glm::vec2& sample, SurfaceInteraction& s
 
 	// Compute color and pdf
 	glm::vec3 eval = evaluate(si);
-	if (si.pdf < FLT_EPSILON) return glm::vec3(0.f);
+	if (si.pdf < FLT_EPS) return glm::vec3(0.f);
 	return eval / si.pdf * fabsf(localCosTheta(si.wo));
 }

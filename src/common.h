@@ -9,6 +9,7 @@
 
 #undef M_PI
 #define EPS 1e-4f
+#define FLT_EPS 1e-15f
 #define M_PI 3.14159265359f
 #define INV_PI 0.31830988618f
 
