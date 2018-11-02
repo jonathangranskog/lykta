@@ -64,7 +64,7 @@ namespace Lykta {
 	public:
 		static std::vector<Mesh> readMeshes(rapidjson::Document& document, 
 			std::map<std::string, std::pair<unsigned, SurfaceMaterial>>& materials,
-			filesystem::path& scene_path) {
+			filesystem::path& scenepath) {
 			std::vector<Mesh> meshes = std::vector<Mesh>();
 
 			if (!document.HasMember("objects")) return meshes;
@@ -81,12 +81,16 @@ namespace Lykta {
 				std::string filename = std::string(file.GetString());
 				filesystem::path filepath = filesystem::path(filename);
 				
+				// If file is not found using relative path, make absolute path
+				if (!filepath.is_file()) filepath = scenepath/filepath;
+
+				// If file is still not found, then print error.
 				if (!filepath.is_file()) {
-					std::cerr << filepath.make_absolute() << " could not be found -- skipping!" << std::endl;
+					std::cerr << filepath.str() << " could not be found -- skipping!" << std::endl;
 					continue;
 				}
 
-				std::vector<Mesh> imported = Mesh::openObj(filename);
+				std::vector<Mesh> imported = Mesh::openObj(filepath.str());
 				
 				// Get material
 				std::string materialLookup = std::string(mat.GetString());

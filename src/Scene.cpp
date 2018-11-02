@@ -72,7 +72,7 @@ bool Lykta::Scene::shadowIntersect(const Lykta::Ray& r) const {
 // Static function for parsing a scene file
 Lykta::Scene* Lykta::Scene::parseFile(const std::string& filename) {
 	Lykta::Scene* scene = new Lykta::Scene();
-	
+
 	std::ifstream in(filename.c_str());
 	std::stringstream sstr;
 	sstr << in.rdbuf();
@@ -82,11 +82,11 @@ Lykta::Scene* Lykta::Scene::parseFile(const std::string& filename) {
 	
 	assert(jsonDocument.IsObject());
 
-	filesystem::path scene_path = filesystem::path(filename);
-	scene_path = scene_path.parent_path();
+	filesystem::path scenepath = filesystem::path(filename);
+	scenepath = scenepath.parent_path();
 
 	std::map<std::string, std::pair<unsigned, Lykta::SurfaceMaterial> > materials = Lykta::JSONHelper::readMaterials(jsonDocument);
-	scene->meshes = Lykta::JSONHelper::readMeshes(jsonDocument, materials, scene_path);
+	scene->meshes = Lykta::JSONHelper::readMeshes(jsonDocument, materials, scenepath);
 
 	unsigned numMaterials = materials.size();
 	std::vector<Lykta::SurfaceMaterial> materialVector = std::vector<Lykta::SurfaceMaterial>(numMaterials);
