@@ -8,7 +8,9 @@
 #include "Scene.hpp"
 #include "JSONHelper.hpp"
 
-bool Lykta::Scene::intersect(const Lykta::Ray& r, Lykta::Hit& result) const {
+using namespace Lykta;
+
+bool Scene::intersect(const Ray& r, Hit& result) const {
 	RTCIntersectContext ctx;
 	rtcInitIntersectContext(&ctx);
 	RTCRay ray;
@@ -29,13 +31,13 @@ bool Lykta::Scene::intersect(const Lykta::Ray& r, Lykta::Hit& result) const {
 		unsigned geomID = rayhit.hit.geomID;
 		result.pos = r.o + rayhit.ray.tfar * r.d;
 		
-		const Lykta::Mesh& mesh = meshes[geomID];
-		const Lykta::Triangle& tri = mesh.triangles[rayhit.hit.primID];
+		const MeshPtr mesh = meshes[geomID];
+		const Triangle& tri = mesh->triangles[rayhit.hit.primID];
 		float u = rayhit.hit.u, v = rayhit.hit.v;
 		float w = 1.f - u - v;
 
 		if (tri.nx != -1 && tri.ny != -1 && tri.nz != -1) {
-			result.normal = w * mesh.normals[tri.nx] + u * mesh.normals[tri.ny] + v * mesh.normals[tri.nz];
+			result.normal = w * mesh->normals[tri.nx] + u * mesh->normals[tri.ny] + v * mesh->normals[tri.nz];
 			result.normal = glm::normalize(result.normal);
 		}
 		else {
@@ -43,13 +45,13 @@ bool Lykta::Scene::intersect(const Lykta::Ray& r, Lykta::Hit& result) const {
 		}
 
 		if (tri.tx != -1 && tri.ty != -1 && tri.tz != -1) {
-			result.texcoord = w * mesh.texcoords[tri.tx] + u * mesh.texcoords[tri.ty] + v * mesh.texcoords[tri.tz];
+			result.texcoord = w * mesh->texcoords[tri.tx] + u * mesh->texcoords[tri.ty] + v * mesh->texcoords[tri.tz];
 		}
 		else {
 			result.texcoord = glm::vec2(0);
 		}
 
-		result.material = mesh.materialId;
+		result.geomID = geomID;
 
 		return true;
 	}
@@ -57,7 +59,7 @@ bool Lykta::Scene::intersect(const Lykta::Ray& r, Lykta::Hit& result) const {
 	return false;
 }
 
-bool Lykta::Scene::shadowIntersect(const Lykta::Ray& r) const {
+bool Scene::shadowIntersect(const Ray& r) const {
 	RTCIntersectContext ctx;
 	rtcInitIntersectContext(&ctx);
 	RTCRay ray;
@@ -70,8 +72,8 @@ bool Lykta::Scene::shadowIntersect(const Lykta::Ray& r) const {
 }
 
 // Static function for parsing a scene file
-Lykta::Scene* Lykta::Scene::parseFile(const std::string& filename) {
-	Lykta::Scene* scene = new Lykta::Scene();
+Scene* Scene::parseFile(const std::string& filename) {
+	Scene* scene = new Scene();
 
 	std::ifstream in(filename.c_str());
 	std::stringstream sstr;
@@ -84,22 +86,24 @@ Lykta::Scene* Lykta::Scene::parseFile(const std::string& filename) {
 
 	filesystem::path scenepath = filesystem::path(filename);
 	scenepath = scenepath.parent_path();
-
-	std::map<std::string, std::pair<unsigned, Lykta::SurfaceMaterial> > materials = Lykta::JSONHelper::readMaterials(jsonDocument);
-	scene->meshes = Lykta::JSONHelper::readMeshes(jsonDocument, materials, scenepath);
+	
+	std::vector<EmitterPtr> emitters;
+	std::map<std::string, std::pair<unsigned, MaterialPtr> > materials = JSONHelper::readMaterials(jsonDocument);
+	
+	scene->meshes = JSONHelper::readMeshes(jsonDocument, materials, emitters, scenepath);
 
 	unsigned numMaterials = materials.size();
-	std::vector<Lykta::SurfaceMaterial> materialVector = std::vector<Lykta::SurfaceMaterial>(numMaterials);
+	std::vector<MaterialPtr> materialVector = std::vector<MaterialPtr>(numMaterials);
 	for (auto it = materials.begin(); it != materials.end(); it++) {
 		materialVector[it->second.first] = it->second.second;
 	}
 	scene->materials = materialVector;
-	scene->camera = std::unique_ptr<Lykta::Camera>(Lykta::JSONHelper::readCamera(jsonDocument));
+	scene->camera = std::unique_ptr<Camera>(JSONHelper::readCamera(jsonDocument));
 	scene->generateEmbreeScene();
 	return scene;
 }
 
-void Lykta::Scene::generateEmbreeScene() {
+void Scene::generateEmbreeScene() {
 	embree_device = rtcNewDevice(NULL);
 	embree_scene = rtcNewScene(embree_device);
 	
@@ -110,11 +114,11 @@ void Lykta::Scene::generateEmbreeScene() {
 	rtcCommitScene(embree_scene);
 }
 
-unsigned Lykta::Scene::createEmbreeGeometry(Mesh& mesh) {
+unsigned Scene::createEmbreeGeometry(MeshPtr mesh) {
 	RTCGeometry geometry = rtcNewGeometry(embree_device, RTC_GEOMETRY_TYPE_TRIANGLE);
-	rtcSetSharedGeometryBuffer(geometry, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT3, (void*)mesh.positions.data(), 0, sizeof(glm::vec3), mesh.positions.size());
-	rtcSetSharedGeometryBuffer(geometry, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT3, (void*)mesh.triangles.data(), 0, sizeof(Triangle), mesh.triangles.size());
-	rtcSetSharedGeometryBuffer(geometry, RTC_BUFFER_TYPE_NORMAL, 0, RTC_FORMAT_FLOAT3, (void*)mesh.normals.data(), 0, sizeof(glm::vec3), mesh.normals.size());
+	rtcSetSharedGeometryBuffer(geometry, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT3, (void*)mesh->positions.data(), 0, sizeof(glm::vec3), mesh->positions.size());
+	rtcSetSharedGeometryBuffer(geometry, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT3, (void*)mesh->triangles.data(), 0, sizeof(Triangle), mesh->triangles.size());
+	rtcSetSharedGeometryBuffer(geometry, RTC_BUFFER_TYPE_NORMAL, 0, RTC_FORMAT_FLOAT3, (void*)mesh->normals.data(), 0, sizeof(glm::vec3), mesh->normals.size());
 	rtcCommitGeometry(geometry);
 	unsigned geomID = rtcAttachGeometry(embree_scene, geometry);
 	rtcReleaseGeometry(geometry);

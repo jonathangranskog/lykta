@@ -39,5 +39,12 @@ namespace Lykta {
 			float D = a2 / (M_PI * tmp * tmp);
 			return nh * D / (4 * localCosTheta(wi));
 		}
+
+		static inline glm::vec3 uniformTriangle(const glm::vec2& sample) {
+			float su1 = sqrtf(sample.x);
+			float u = 1.f - su1, v = sample.y * su1;
+			return glm::vec3(u, v, 1.f - u - v);
+		}
+
 	};
 }

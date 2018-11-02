@@ -14,9 +14,9 @@ namespace Lykta {
 	class Scene {
 	private:
 		std::unique_ptr<Camera> camera;
-		std::vector<SurfaceMaterial> materials;
-		std::vector<Mesh> meshes;
-		// TODO: Add vector of lights
+		std::vector<MaterialPtr> materials;
+		std::vector<MeshPtr> meshes;
+		std::vector<EmitterPtr> emitters;
 		// TODO: Add vector of textures
 		// Embree specific variables
 		RTCDevice embree_device;
@@ -33,8 +33,8 @@ namespace Lykta {
 			return camera->getResolution();
 		}
 
-		const SurfaceMaterial& getMaterial(unsigned id) {
-			return materials[id];
+		const MaterialPtr getMaterial(unsigned geomID) {
+			return meshes[geomID]->material;
 		}
 
 		const std::unique_ptr<Camera>& getCamera() const {
@@ -45,6 +45,6 @@ namespace Lykta {
 
 		// Embree functions
 		void generateEmbreeScene();
-		unsigned createEmbreeGeometry(Mesh& mesh);
+		unsigned createEmbreeGeometry(MeshPtr mesh);
 	};
 }

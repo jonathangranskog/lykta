@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
 #include <glm/mat4x4.hpp>
@@ -14,6 +15,14 @@
 #define INV_PI 0.31830988618f
 
 namespace Lykta {
+	
+	class Emitter;
+	class Mesh;
+	class SurfaceMaterial;
+
+	typedef std::shared_ptr<Emitter> EmitterPtr;
+	typedef std::shared_ptr<Mesh> MeshPtr;
+	typedef std::shared_ptr<SurfaceMaterial> MaterialPtr;
 
 	struct Ray {
 		glm::vec3 o;
@@ -31,7 +40,7 @@ namespace Lykta {
 		glm::vec2 texcoord;
 		glm::vec3 pos;
 		glm::vec3 normal;
-		unsigned material;
+		unsigned geomID;
 	};
 
 	struct Triangle {

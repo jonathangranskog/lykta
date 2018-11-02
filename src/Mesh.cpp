@@ -1,9 +1,72 @@
 #include <chrono>
 #include <iostream>
+#include <algorithm>
+#include "common.h"
 #include "Mesh.hpp"
+#include "Sampling.hpp"
 #include "tinyobj/tiny_obj_loader.h"
 
-std::vector<Lykta::Mesh> Lykta::Mesh::openObj(const std::string& filename) {
+using namespace Lykta;
+
+void Mesh::constructCDF() {
+	if (triangles.size() == 0) return;
+
+	std::vector<float> areas = std::vector<float>(triangles.size(), 0.f);
+	#pragma omp parallel for
+	for (int i = 0; i < triangles.size(); i++) {
+		const glm::vec3& v0 = positions[triangles[i].px];
+		const glm::vec3& v1 = positions[triangles[i].py];
+		const glm::vec3& v2 = positions[triangles[i].pz];
+
+		areas[i] = glm::length(glm::cross(v1 - v0, v2 - v0)) * 0.5f;
+	}
+
+	cumulativeAreas = std::vector<float>(triangles.size(), 0.f);
+	cumulativeAreas[0] = areas[0];
+	for (int i = 1; i < triangles.size(); i++) {
+		cumulativeAreas[i] = areas[i] + cumulativeAreas[i - 1];
+	}
+}
+
+float Mesh::pdf() const {
+	if (cumulativeAreas.size() == 0) return 0.f;
+	else return 1.f / cumulativeAreas.back();
+}
+
+void Mesh::sample(const glm::vec3& s, MeshSample& info) const {
+	int index = cumulativeAreas.size() - 1;
+	auto it = std::lower_bound(cumulativeAreas.begin(), cumulativeAreas.end(), s.z * cumulativeAreas.back());
+	if (it != cumulativeAreas.end()) {
+		index = std::distance(cumulativeAreas.begin(), it);
+	}
+	
+	// Sample barycentric coordinates
+	glm::vec3 bc = Sampling::uniformTriangle(glm::vec2(s));
+	
+	// Set sample information
+	const Triangle& tri = triangles[index];
+	glm::vec3 pt = bc.x * positions[tri.px] + bc.y * positions[tri.py] + bc.z * positions[tri.pz];
+
+	glm::vec3 n;
+	if (tri.nx == -1 || tri.ny == -1 || tri.nz == -1) 
+		n = glm::cross(positions[tri.py] - positions[tri.px], positions[tri.pz] - positions[tri.px]);
+	else
+		n = bc.x * normals[tri.nx] + bc.y * normals[tri.ny] + bc.z * normals[tri.nz];
+	n = glm::normalize(n);
+
+	glm::vec2 uv;
+	if (tri.tx == -1 || tri.ty == -1 || tri.tz == -1)
+		uv = glm::vec2(0.f);
+	else
+		uv = bc.x * texcoords[tri.tx] + bc.y * texcoords[tri.ty] + bc.z * texcoords[tri.tz];
+
+	info.pos = pt;
+	info.normal = n;
+	info.uv = uv;
+	info.pdf = pdf();
+}
+
+std::vector<MeshPtr> Mesh::openObj(const std::string& filename) {
 	tinyobj::attrib_t attrib;
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> materials;
@@ -25,19 +88,19 @@ std::vector<Lykta::Mesh> Lykta::Mesh::openObj(const std::string& filename) {
 
 	if (!ret) {
 		std::cout << "Failed to load file: " << filename << std::endl;
-		return std::vector<Lykta::Mesh>();
+		return std::vector<MeshPtr>();
 	}
 	
 	std::cout << "Loaded file: " << filename << " in " << loadTime << " seconds." << std::endl;
 
 	// Create Lykta meshes
-	std::vector<Lykta::Mesh> meshes = std::vector<Lykta::Mesh>();
+	std::vector<MeshPtr> meshes = std::vector<MeshPtr>();
 
 	for (int i = 0; i < shapes.size(); i++) {
 		const tinyobj::mesh_t& mesh = shapes[i].mesh;
 		const std::vector<tinyobj::index_t>& indices = mesh.indices;
 		
-		std::vector<Lykta::Triangle> triangles = std::vector<Lykta::Triangle>();
+		std::vector<Triangle> triangles = std::vector<Triangle>();
 		std::vector<glm::vec3> vertices = std::vector<glm::vec3>();
 		std::vector<glm::vec3> normals = std::vector<glm::vec3>();
 		std::vector<glm::vec2> texcoords = std::vector<glm::vec2>();
@@ -64,7 +127,7 @@ std::vector<Lykta::Mesh> Lykta::Mesh::openObj(const std::string& filename) {
 			size_t fnum = shapes[i].mesh.num_face_vertices[f];
 
 			// Assuming triangulated...
-			Lykta::Triangle triangle;
+			Triangle triangle;
 			triangle.px = indices[index_offset + 0].vertex_index;
 			triangle.py = indices[index_offset + 1].vertex_index;
 			triangle.pz = indices[index_offset + 2].vertex_index;
@@ -78,11 +141,12 @@ std::vector<Lykta::Mesh> Lykta::Mesh::openObj(const std::string& filename) {
 			index_offset += fnum;
 		}
 
-		Lykta::Mesh m = Lykta::Mesh();
-		m.setPositions(vertices);
-		m.setNormals(normals);
-		m.setTextureCoordinates(texcoords);
-		m.setTriangles(triangles);
+		MeshPtr m = MeshPtr(new Mesh());
+		m->positions = vertices;
+		m->normals = normals;
+		m->texcoords = texcoords;
+		m->triangles = triangles;
+		m->constructCDF();
 		meshes.push_back(m);
 	}
 

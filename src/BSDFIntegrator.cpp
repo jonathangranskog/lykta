@@ -11,10 +11,10 @@ glm::vec3 Lykta::BSDFIntegrator::evaluate(const Lykta::Ray& ray, const std::shar
 			break;
 		}
 
-		const Lykta::SurfaceMaterial& material = scene->getMaterial(hit.material);
+		const std::shared_ptr<SurfaceMaterial> material = scene->getMaterial(hit.geomID);
 
-		if (Lykta::maxComponent(material.getEmission()) > 0.f) {
-			result += throughput * material.getEmission();
+		if (Lykta::maxComponent(material->getEmission()) > 0.f) {
+			result += throughput * material->getEmission();
 		}
 
 		// RR
@@ -29,7 +29,7 @@ glm::vec3 Lykta::BSDFIntegrator::evaluate(const Lykta::Ray& ray, const std::shar
 		si.uv = hit.texcoord;
 		si.pos = hit.pos;
 		si.wi = basis.toLocalSpace(-r.d);
-		glm::vec3 color = material.sample(sampler->next2D(), si);
+		glm::vec3 color = material->sample(sampler->next2D(), si);
 		glm::vec3 out = basis.fromLocalSpace(si.wo);
 
 		throughput *= color;

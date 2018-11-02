@@ -11,6 +11,7 @@
 #include "Camera.hpp"
 #include "Material.hpp"
 #include "Mesh.hpp"
+#include "Emitter.hpp"
 
 namespace Lykta {
 
@@ -62,10 +63,11 @@ namespace Lykta {
 		}
 
 	public:
-		static std::vector<Mesh> readMeshes(rapidjson::Document& document, 
-			std::map<std::string, std::pair<unsigned, SurfaceMaterial>>& materials,
+		static std::vector<MeshPtr> readMeshes(rapidjson::Document& document,
+			std::map<std::string, std::pair<unsigned, MaterialPtr> >& materials,
+			std::vector<EmitterPtr>& emitters,
 			filesystem::path& scenepath) {
-			std::vector<Mesh> meshes = std::vector<Mesh>();
+			std::vector<MeshPtr> meshes = std::vector<MeshPtr>();
 
 			if (!document.HasMember("objects")) return meshes;
 
@@ -90,21 +92,31 @@ namespace Lykta {
 					continue;
 				}
 
-				std::vector<Mesh> imported = Mesh::openObj(filepath.str());
+				std::vector<MeshPtr> imported = Mesh::openObj(filepath.str());
 				
 				// Get material
 				std::string materialLookup = std::string(mat.GetString());
 				assert(materials.find(materialLookup) != materials.end());
+				bool isEmitter = (maxComponent(materials[materialLookup].second->getEmission())) > 0.f;
 				unsigned index = materials[materialLookup].first;
-				for (Mesh& m : imported) m.materialId = index;
+				
+				for (MeshPtr m : imported) {
+					if (isEmitter) {
+						EmitterPtr emitter = EmitterPtr(new MeshEmitter(m));
+						emitters.push_back(emitter);
+					}
+
+					m->material = materials[materialLookup].second;
+				}
+
 				meshes.insert(meshes.end(), imported.begin(), imported.end());
 			}
 
 			return meshes;
 		}
 
-		static std::map<std::string, std::pair<unsigned, SurfaceMaterial> > readMaterials(rapidjson::Document& document) {
-			std::map<std::string, std::pair<unsigned, SurfaceMaterial> > materialMap;
+		static std::map<std::string, std::pair<unsigned, MaterialPtr>>readMaterials(rapidjson::Document& document) {
+			std::map<std::string, std::pair<unsigned, MaterialPtr> > materialMap;
 
 			if (!document.HasMember("materials")) return materialMap;
 
@@ -140,11 +152,11 @@ namespace Lykta {
 				if (arr[i].HasMember("ior")) ior = arr[i]["ior"].GetFloat();
 				else ior = 1.33f;
 
-				SurfaceMaterial mat = SurfaceMaterial(diffuseColor, emissiveColor, specular, specularTint, roughness, ior);
+				MaterialPtr mat = MaterialPtr(new SurfaceMaterial(diffuseColor, emissiveColor, specular, specularTint, roughness, ior));
 
 				const rapidjson::Value& name = arr[i]["name"];
 				assert(name.IsString());
-				materialMap[name.GetString()] = std::pair<unsigned, SurfaceMaterial>((unsigned)i, mat);
+				materialMap[name.GetString()] = std::pair<unsigned, MaterialPtr>((unsigned)i, mat);
 			}
 
 			return materialMap;
