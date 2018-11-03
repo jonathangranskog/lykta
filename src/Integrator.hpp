@@ -16,7 +16,8 @@ namespace Lykta {
 	public:
 		enum Type {
 			BSDF = 0,
-			AO = 1
+			AO = 1,
+			PT = 2
 		};
 
 		virtual ~Integrator() {}
@@ -44,6 +45,15 @@ namespace Lykta {
 	public:
 		BSDFIntegrator() {}
 		~BSDFIntegrator() {}
+		virtual glm::vec3 evaluate(const Ray& ray, const std::shared_ptr<Scene> scene, RandomSampler* sampler);
+	};
+
+	class Unidirectional : public Integrator {
+	private:
+
+	public:
+		Unidirectional() {}
+		~Unidirectional() {}
 		virtual glm::vec3 evaluate(const Ray& ray, const std::shared_ptr<Scene> scene, RandomSampler* sampler);
 	};
 }

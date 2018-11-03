@@ -72,5 +72,9 @@ namespace Lykta {
 		glm::vec2 next2D() {
 			return glm::vec2(next(), next());
 		}
+
+		glm::vec3 next3D() {
+			return glm::vec3(next(), next(), next());
+		}
 	};
 }

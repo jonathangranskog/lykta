@@ -109,7 +109,7 @@ namespace Lykta {
 
 			// Integrator box
 			new nanogui::Label(window, "Integrator", "sans-bold");
-			integratorBox = new nanogui::ComboBox(window, { "BSDF", "AO" });
+			integratorBox = new nanogui::ComboBox(window, { "BSDF", "AO", "PT" });
 			integratorBox->setCallback([&](int) { changeIntegrator(); });
 			
 			performLayout(mNVGContext);

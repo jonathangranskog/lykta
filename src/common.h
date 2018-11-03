@@ -137,4 +137,8 @@ namespace Lykta {
 		return 0.5f * (rs * rs + rp * rp);
 	}
 
+	inline float balanceHeuristic(float pdf1, float pdf2) {
+		return pdf1 / (pdf1 + pdf2);
+	}
+
 }

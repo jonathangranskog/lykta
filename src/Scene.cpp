@@ -97,7 +97,9 @@ Scene* Scene::parseFile(const std::string& filename) {
 	for (auto it = materials.begin(); it != materials.end(); it++) {
 		materialVector[it->second.first] = it->second.second;
 	}
+
 	scene->materials = materialVector;
+	scene->emitters = emitters;
 	scene->camera = std::unique_ptr<Camera>(JSONHelper::readCamera(jsonDocument));
 	scene->generateEmbreeScene();
 	return scene;

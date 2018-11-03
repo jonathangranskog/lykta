@@ -26,6 +26,9 @@ void Lykta::Renderer::refresh() {
 	else if (integratorType == Integrator::Type::AO) {
 		integrator = std::unique_ptr<Integrator>(new AOIntegrator());
 	}
+	else if (integratorType == Integrator::Type::PT) {
+		integrator = std::unique_ptr<Integrator>(new Unidirectional());
+	}
 
 	integrator->preprocess(scene);
 

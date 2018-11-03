@@ -35,7 +35,8 @@ float Mesh::pdf() const {
 
 void Mesh::sample(const glm::vec3& s, MeshSample& info) const {
 	int index = cumulativeAreas.size() - 1;
-	auto it = std::lower_bound(cumulativeAreas.begin(), cumulativeAreas.end(), s.z * cumulativeAreas.back());
+	float select = s.z * cumulativeAreas.back();
+	auto it = std::lower_bound(cumulativeAreas.begin(), cumulativeAreas.end(), select);
 	if (it != cumulativeAreas.end()) {
 		index = std::distance(cumulativeAreas.begin(), it);
 	}

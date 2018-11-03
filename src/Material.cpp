@@ -22,7 +22,7 @@ glm::vec3 SurfaceMaterial::evalSpecular(SurfaceInteraction& si) const {
 	float tmp = nh * nh * (alpha2 -1) + 1;
 	float D = alpha2 / (M_PI * tmp * tmp);
 
-	float F = fresnel(fabsf(glm::dot(si.wi, wh)), 1.f, ior);
+	float F = fresnel(fabsf(glm::dot(si.wo, wh)), 1.f, ior);
 	
 	float nom = 2 * ni * no;
 	float denom1 = no * sqrtf(alpha2 + (1 - alpha2) * ni * ni);
@@ -36,6 +36,7 @@ glm::vec3 SurfaceMaterial::evalSpecular(SurfaceInteraction& si) const {
 	
 	return D * F * G * denom * color;
 }
+
 glm::vec3 SurfaceMaterial::evalDiffuse(SurfaceInteraction& si) const {
 	// If on opposite side of normal
 	if (localCosTheta(si.wo) <= 0.f || localCosTheta(si.wi) <= 0.f) {

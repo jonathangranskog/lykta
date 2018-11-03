@@ -9,6 +9,7 @@
 #include "Camera.hpp"
 #include "Mesh.hpp"
 #include "Material.hpp"
+#include "random.h"
 
 namespace Lykta {
 	class Scene {
@@ -35,6 +36,23 @@ namespace Lykta {
 
 		const MaterialPtr getMaterial(unsigned geomID) {
 			return meshes[geomID]->material;
+		}
+
+		const EmitterPtr getRandomEmitter(float r) {
+			if (emitters.size() == 0) return nullptr;
+			return emitters[(int)r * emitters.size()];
+		}
+
+		const std::vector<EmitterPtr> getEmitters() {
+			return emitters;
+		}
+
+		const std::vector<MeshPtr> getMeshes() {
+			return meshes;
+		}
+
+		const std::vector<MaterialPtr> getMaterials() {
+			return materials;
 		}
 
 		const std::unique_ptr<Camera>& getCamera() const {

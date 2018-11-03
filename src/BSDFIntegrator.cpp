@@ -1,9 +1,11 @@
 #include "Integrator.hpp"
 
-glm::vec3 Lykta::BSDFIntegrator::evaluate(const Lykta::Ray& ray, const std::shared_ptr<Lykta::Scene> scene, Lykta::RandomSampler* sampler) {
+using namespace Lykta;
+
+glm::vec3 BSDFIntegrator::evaluate(const Ray& ray, const std::shared_ptr<Scene> scene, RandomSampler* sampler) {
 	glm::vec3 result = glm::vec3(0.f);
 	glm::vec3 throughput = glm::vec3(1.f);
-	Lykta::Ray r = ray;
+	Ray r = ray;
 
 	while (true) {
 		Lykta::Hit hit;
@@ -11,21 +13,21 @@ glm::vec3 Lykta::BSDFIntegrator::evaluate(const Lykta::Ray& ray, const std::shar
 			break;
 		}
 
-		const std::shared_ptr<SurfaceMaterial> material = scene->getMaterial(hit.geomID);
+		const MaterialPtr material = scene->getMaterial(hit.geomID);
 
-		if (Lykta::maxComponent(material->getEmission()) > 0.f) {
+		if (maxComponent(material->getEmission()) > 0.f) {
 			result += throughput * material->getEmission();
 		}
 
 		// RR
 		float s = sampler->next();
-		float success = fminf(0.75f, Lykta::luminance(throughput));
+		float success = fminf(0.75f, luminance(throughput));
 		if (s < (1 - success)) break;
 		throughput /= success;
 
 		// Sample BSDF
-		Lykta::Basis basis = Lykta::Basis(hit.normal);
-		Lykta::SurfaceInteraction si;
+		Basis basis = Basis(hit.normal);
+		SurfaceInteraction si;
 		si.uv = hit.texcoord;
 		si.pos = hit.pos;
 		si.wi = basis.toLocalSpace(-r.d);
@@ -33,7 +35,7 @@ glm::vec3 Lykta::BSDFIntegrator::evaluate(const Lykta::Ray& ray, const std::shar
 		glm::vec3 out = basis.fromLocalSpace(si.wo);
 
 		throughput *= color;
-		r = Lykta::Ray(hit.pos, out);
+		r = Ray(hit.pos, out);
 	}
 
 	return result;

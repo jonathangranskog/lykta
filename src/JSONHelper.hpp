@@ -103,6 +103,7 @@ namespace Lykta {
 				for (MeshPtr m : imported) {
 					if (isEmitter) {
 						EmitterPtr emitter = EmitterPtr(new MeshEmitter(m));
+						m->emitter = emitter;
 						emitters.push_back(emitter);
 					}
 
