@@ -45,8 +45,8 @@ namespace Lykta {
 
 		glm::vec3 evalSpecular(SurfaceInteraction& si) const;
 		glm::vec3 evalDiffuse(SurfaceInteraction& si) const;
-		void sampleSpecular(const glm::vec2& sample, SurfaceInteraction& si) const;
-		void sampleDiffuse(const glm::vec2& sample, SurfaceInteraction& si) const;
+		glm::vec3 sampleSpecular(const glm::vec2& sample, SurfaceInteraction& si) const;
+		glm::vec3 sampleDiffuse(const glm::vec2& sample, SurfaceInteraction& si) const;
 		
 		glm::vec3 evaluate(SurfaceInteraction& si) const;
 		glm::vec3 sample(const glm::vec2& sample, SurfaceInteraction& si) const;

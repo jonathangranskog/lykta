@@ -68,7 +68,7 @@ bool Scene::shadowIntersect(const Ray& r) const {
 	ray.tnear = r.t.x; ray.tfar = r.t.y; ray.time = 0.f;
 
 	rtcOccluded1(embree_scene, &ctx, &ray);
-	return ray.tfar < r.t.y;
+	return ray.tfar > 0 && ray.tfar < r.t.y;
 }
 
 // Static function for parsing a scene file

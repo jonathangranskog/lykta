@@ -33,6 +33,7 @@ glm::vec3 Unidirectional::evaluate(const Ray& ray, const std::shared_ptr<Scene> 
 			if (!isnan(misWeightMat))
 				result += misWeightMat * throughput * emitterEval;
 		}
+		misWeightMat = 1.f;
 
 		// RR
 		float s = sampler->next();
@@ -60,11 +61,12 @@ glm::vec3 Unidirectional::evaluate(const Ray& ray, const std::shared_ptr<Scene> 
 
 				misWeightEmitter = balanceHeuristic(emitterPDF, materialPDF);
 				if (!isnan(misWeightEmitter)) {
-					float nl = abs(glm::dot(ei.direction, hit.normal));
+					float nl = fabsf(glm::dot(ei.direction, hit.normal));
 					result += (float)numLights * misWeightEmitter * nl * throughput * materialEval * Le;
 				}
 			}
 		}
+		misWeightEmitter = 0.f;
 		
 		// Sample material
 		si = SurfaceInteraction();

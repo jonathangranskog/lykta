@@ -48,13 +48,17 @@ glm::vec3 SurfaceMaterial::evalDiffuse(SurfaceInteraction& si) const {
 	return INV_PI * diffuseColor;
 }
 
-void SurfaceMaterial::sampleSpecular(const glm::vec2& sample, SurfaceInteraction& si) const {
+glm::vec3 SurfaceMaterial::sampleSpecular(const glm::vec2& sample, SurfaceInteraction& si) const {
 	glm::vec3 wh = Sampling::GGX(sample, alpha);
 	si.wo = -si.wi + 2 * glm::dot(si.wi, wh) * wh;
+	glm::vec3 eval = evalSpecular(si);
+	return eval / si.pdf * localCosTheta(si.wo);
 }
 
-void SurfaceMaterial::sampleDiffuse(const glm::vec2& sample, SurfaceInteraction& si) const {
+glm::vec3 SurfaceMaterial::sampleDiffuse(const glm::vec2& sample, SurfaceInteraction& si) const {
 	si.wo = Sampling::cosineHemisphere(sample);
+	si.pdf = Sampling::cosineHemispherePdf(si.wo);
+	return diffuseColor;
 }
 
 glm::vec3 SurfaceMaterial::evaluate(SurfaceInteraction& si) const {
@@ -71,18 +75,12 @@ glm::vec3 SurfaceMaterial::evaluate(SurfaceInteraction& si) const {
 glm::vec3 SurfaceMaterial::sample(const glm::vec2& sample, SurfaceInteraction& si) const {
 	glm::vec2 s = sample;
 
-	// Get outgoing direction
 	if (s.x < specular) {
 		s.x /= specular;
-		sampleSpecular(s, si);
+		return sampleSpecular(s, si);
 	}
 	else {
 		s.x = (s.x - specular) / (1.f - specular);
-		sampleDiffuse(s, si);
+		return sampleDiffuse(s, si);
 	}
-
-	// Compute color and pdf
-	glm::vec3 eval = evaluate(si);
-	if (si.pdf < FLT_EPS) return glm::vec3(0.f);
-	return eval / si.pdf * fabsf(localCosTheta(si.wo));
 }
