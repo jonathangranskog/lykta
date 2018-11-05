@@ -16,7 +16,7 @@ namespace Lykta {
 
 		static inline glm::vec3 cosineHemisphere(const glm::vec2& sample) {
 			glm::vec2 disk = uniformDisk(sample);
-			return glm::vec3(disk.x, disk.y, 1 - disk.x * disk.x - disk.y * disk.y);
+			return glm::vec3(disk.x, disk.y, sqrtf(1 - disk.x * disk.x - disk.y * disk.y));
 		}
 
 		static inline float cosineHemispherePdf(const glm::vec3& v) {

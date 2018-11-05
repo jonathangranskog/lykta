@@ -52,12 +52,20 @@ glm::vec3 SurfaceMaterial::sampleSpecular(const glm::vec2& sample, SurfaceIntera
 	glm::vec3 wh = Sampling::GGX(sample, alpha);
 	si.wo = -si.wi + 2 * glm::dot(si.wi, wh) * wh;
 	glm::vec3 eval = evalSpecular(si);
+	if (si.pdf < FLT_EPS) {
+		si.pdf = 0.f;
+		return glm::vec3(0.f);
+	}
 	return eval / si.pdf * localCosTheta(si.wo);
 }
 
 glm::vec3 SurfaceMaterial::sampleDiffuse(const glm::vec2& sample, SurfaceInteraction& si) const {
 	si.wo = Sampling::cosineHemisphere(sample);
 	si.pdf = Sampling::cosineHemispherePdf(si.wo);
+	if (si.pdf < FLT_EPS) {
+		si.pdf = 0.f;
+		return glm::vec3(0.f);
+	}
 	return diffuseColor;
 }
 
@@ -68,7 +76,10 @@ glm::vec3 SurfaceMaterial::evaluate(SurfaceInteraction& si) const {
 	float specularPdf = si.pdf;
 
 	si.pdf = (1 - specular) * diffusePdf + specular * specularPdf;
-	if (si.pdf < FLT_EPS) return glm::vec3(0.f);
+	if (si.pdf < FLT_EPS) {
+		si.pdf = 0.f;
+		return glm::vec3(0.f);
+	}
 	return (1 - specular) * diffuseEval + specular * specularEval;
 }
 

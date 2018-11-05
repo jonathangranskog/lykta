@@ -42,7 +42,7 @@ void Mesh::sample(const glm::vec3& s, MeshSample& info) const {
 	}
 	
 	// Sample barycentric coordinates
-	glm::vec3 bc = Sampling::uniformTriangle(glm::vec2(s));
+	glm::vec3 bc = Sampling::uniformTriangle(glm::vec2(s.x, s.y));
 	
 	// Set sample information
 	const Triangle& tri = triangles[index];

@@ -6,6 +6,7 @@ glm::vec3 BSDFIntegrator::evaluate(const Ray& ray, const std::shared_ptr<Scene> 
 	glm::vec3 result = glm::vec3(0.f);
 	glm::vec3 throughput = glm::vec3(1.f);
 	Ray r = ray;
+	unsigned bounces = 0;
 
 	while (true) {
 		Lykta::Hit hit;
@@ -30,12 +31,13 @@ glm::vec3 BSDFIntegrator::evaluate(const Ray& ray, const std::shared_ptr<Scene> 
 		SurfaceInteraction si;
 		si.uv = hit.texcoord;
 		si.pos = hit.pos;
-		si.wi = basis.toLocalSpace(-r.d);
+		si.wi = glm::normalize(basis.toLocalSpace(-r.d));
 		glm::vec3 color = material->sample(sampler->next2D(), si);
-		glm::vec3 out = basis.fromLocalSpace(si.wo);
+		glm::vec3 out = glm::normalize(basis.fromLocalSpace(si.wo));
 
 		throughput *= color;
 		r = Ray(hit.pos, out);
+		bounces++;
 	}
 
 	return result;

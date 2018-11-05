@@ -13,13 +13,15 @@ glm::vec3 MeshEmitter::sample(const glm::vec3& s, EmitterInteraction& ei) const 
 	MeshSample info;
 	mesh->sample(s, info);
 	float areaPDF = info.pdf;
+	float dist = glm::length(info.pos - ei.origin);
 
 	ei.position = info.pos;
-	ei.direction = info.pos - ei.origin;
-	float maxdist = glm::length(ei.direction);
+	ei.direction = glm::normalize(info.pos - ei.origin);
 	ei.normal = info.normal;
-	ei.direction = glm::normalize(ei.direction);
-	ei.shadowRay = Ray(ei.origin, ei.direction, glm::vec2(EPS, maxdist - EPS));
-	ei.pdf = areaPDF * (maxdist * maxdist) / fabsf(glm::dot(ei.normal, -ei.direction));
+	ei.shadowRay = Ray(ei.origin, ei.direction, glm::vec2(EPS, dist - EPS));
+	
+	float abso = abs(glm::dot(ei.normal, ei.direction));
+	float areaToSolidAngle = dist * dist / abso;
+	ei.pdf = areaToSolidAngle * areaPDF;
 	return mesh->material->getEmission() / ei.pdf;
 }

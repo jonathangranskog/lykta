@@ -20,10 +20,9 @@ glm::vec3 Unidirectional::evaluate(const Ray& ray, const std::shared_ptr<Scene> 
 	MeshPtr mesh = meshes[hit.geomID];
 	EmitterPtr emitter = mesh->emitter;
 	
-	unsigned bounces = 0;
+	unsigned bounces = 1;
 	float misWeightMat = 1.f, misWeightEmitter = 0.f;
 	EmitterInteraction ei(hit.pos, r.o, hit.normal, r.d);
-	SurfaceInteraction si;
 	glm::vec3 emitterEval = (emitter) ? emitter->eval(ei) : glm::vec3(0.f);
 
 	while (intersected) {
@@ -33,7 +32,6 @@ glm::vec3 Unidirectional::evaluate(const Ray& ray, const std::shared_ptr<Scene> 
 			if (!isnan(misWeightMat))
 				result += misWeightMat * throughput * emitterEval;
 		}
-		misWeightMat = 1.f;
 
 		// RR
 		float s = sampler->next();
@@ -51,9 +49,9 @@ glm::vec3 Unidirectional::evaluate(const Ray& ray, const std::shared_ptr<Scene> 
 			glm::vec3 Le = emitter->sample(sampler->next3D(), ei);
 			if (!scene->shadowIntersect(ei.shadowRay)) {
 				float emitterPDF = ei.pdf;
-				si = SurfaceInteraction();
-				si.wi = basis.toLocalSpace(-r.d);
-				si.wo = basis.toLocalSpace(ei.direction);
+				SurfaceInteraction si = SurfaceInteraction();
+				si.wi = glm::normalize(basis.toLocalSpace(-r.d));
+				si.wo = glm::normalize(basis.toLocalSpace(ei.direction));
 				si.pos = hit.pos;
 				si.uv = hit.texcoord;
 				glm::vec3 materialEval = material->evaluate(si);
@@ -61,20 +59,19 @@ glm::vec3 Unidirectional::evaluate(const Ray& ray, const std::shared_ptr<Scene> 
 
 				misWeightEmitter = balanceHeuristic(emitterPDF, materialPDF);
 				if (!isnan(misWeightEmitter)) {
-					float nl = fabsf(glm::dot(ei.direction, hit.normal));
-					result += (float)numLights * misWeightEmitter * nl * throughput * materialEval * Le;
+					float nl = abs(glm::dot(ei.direction, hit.normal));
+					result += numLights * misWeightEmitter * nl * throughput * materialEval * Le;
 				}
 			}
 		}
-		misWeightEmitter = 0.f;
 		
 		// Sample material
-		si = SurfaceInteraction();
+		SurfaceInteraction si = SurfaceInteraction();
 		si.uv = hit.texcoord;
 		si.pos = hit.pos;
-		si.wi = basis.toLocalSpace(-r.d);
+		si.wi = glm::normalize(basis.toLocalSpace(-r.d));
 		glm::vec3 color = material->sample(sampler->next2D(), si);
-		glm::vec3 out = basis.fromLocalSpace(si.wo);
+		glm::vec3 out = glm::normalize(basis.fromLocalSpace(si.wo));
 		r = Ray(hit.pos, out);
 		hit = Hit();
 		intersected = scene->intersect(r, hit);
@@ -93,11 +90,9 @@ glm::vec3 Unidirectional::evaluate(const Ray& ray, const std::shared_ptr<Scene> 
 				float emitterPDF = ei.pdf;
 				misWeightMat = balanceHeuristic(materialPDF, emitterPDF);
 			}
-
-			bounces++;
 		}
 		
-
+		bounces++;
 		throughput *= color;
 	}
 
