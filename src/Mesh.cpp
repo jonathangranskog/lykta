@@ -35,6 +35,8 @@ float Mesh::pdf() const {
 
 void Mesh::sample(const glm::vec3& s, MeshSample& info) const {
 	int index = cumulativeAreas.size() - 1;
+	
+	// Binary search first index that is above "select" value
 	float select = s.z * cumulativeAreas.back();
 	auto it = std::lower_bound(cumulativeAreas.begin(), cumulativeAreas.end(), select);
 	if (it != cumulativeAreas.end()) {
@@ -48,6 +50,8 @@ void Mesh::sample(const glm::vec3& s, MeshSample& info) const {
 	const Triangle& tri = triangles[index];
 	glm::vec3 pt = bc.x * positions[tri.px] + bc.y * positions[tri.py] + bc.z * positions[tri.pz];
 
+	// If no normal defined, compute cross product
+	// Ideally, this should be a function in mesh or normals should be precomputed if not defined.
 	glm::vec3 n;
 	if (tri.nx == -1 || tri.ny == -1 || tri.nz == -1) 
 		n = glm::cross(positions[tri.py] - positions[tri.px], positions[tri.pz] - positions[tri.px]);
@@ -55,6 +59,7 @@ void Mesh::sample(const glm::vec3& s, MeshSample& info) const {
 		n = bc.x * normals[tri.nx] + bc.y * normals[tri.ny] + bc.z * normals[tri.nz];
 	n = glm::normalize(n);
 
+	// No texture coordinates used if not defined
 	glm::vec2 uv;
 	if (tri.tx == -1 || tri.ty == -1 || tri.tz == -1)
 		uv = glm::vec2(0.f);

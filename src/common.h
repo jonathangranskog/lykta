@@ -49,6 +49,8 @@ namespace Lykta {
 		int tx, ty, tz;
 	};
 
+	// Basis from a single vector, used for shading in normal's space
+	// normal is z-vector
 	struct Basis {
 		glm::vec3 x, y, z;
 
@@ -71,6 +73,7 @@ namespace Lykta {
 		}
 	};
 
+	// Create look-at matrix where positive z-axis is viewing vector
 	inline glm::mat4 lookAt(const glm::vec3& eye, const glm::vec3& center, const glm::vec3& up) {
 		glm::vec3 z = glm::normalize(center - eye);
 		glm::vec3 x = glm::normalize(glm::cross(z, up));

@@ -19,10 +19,12 @@ namespace Lykta {
 			float recip = 1.f / (farClip - nearClip);
 			float cot = 1.f / std::tanf(fov / 180.f * M_PI);
 			glm::mat4 persp = glm::mat4();
+			// Create projection matrix that transforms from world space to camera space
 			persp[0] = glm::vec4(cot, 0, 0, 0);
 			persp[1] = glm::vec4(0, cot, 0, 0);
 			persp[2] = glm::vec4(0, 0, farClip * recip, 1);
 			persp[3] = glm::vec4(0, 0, -nearClip * farClip * recip, 0);
+			// Then invert to do the opposite
 			return glm::inverse(persp);
 		}
 
@@ -68,15 +70,18 @@ namespace Lykta {
 									const glm::vec2& pixel,
 									const glm::vec2& sample) const 
 		{
+			// Transform to camera space
 			glm::vec2 imageplane_pos = glm::vec2(pixel.x / resolution.x * 2 - 1, -1.f/aspect * (pixel.y / resolution.y * 2 - 1));
 			glm::vec4 p = projectionToCamera * glm::vec4(imageplane_pos, 1, 1);
 			glm::vec3 d = glm::normalize(glm::vec3(p));
 			float invZ = 1.f / d.z;
 			
+			// Thin lens direction computation
 			glm::vec3 focusPoint = focusDistance * invZ * d;
 			glm::vec3 apertureSample = glm::vec3(Sampling::uniformDisk(sample) * apertureRadius, 0);
 			glm::vec3 dir = glm::normalize(focusPoint - apertureSample);
 
+			// Transform to world space
 			ray.o = glm::vec3(cameraToWorld * glm::vec4(apertureSample, 1));
 			ray.d = glm::vec3(cameraToWorld * glm::vec4(dir, 0));
 			ray.d = glm::normalize(ray.d);

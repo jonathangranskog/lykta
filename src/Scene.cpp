@@ -29,6 +29,7 @@ bool Scene::intersect(const Ray& r, Hit& result) const {
 	
 	if (rayhit.hit.geomID != RTC_INVALID_GEOMETRY_ID) {
 		unsigned geomID = rayhit.hit.geomID;
+		// tfar contains hit distance
 		result.pos = r.o + rayhit.ray.tfar * r.d;
 		
 		const MeshPtr mesh = meshes[geomID];
@@ -67,7 +68,11 @@ bool Scene::shadowIntersect(const Ray& r) const {
 	ray.dir_x = r.d.x; ray.dir_y = r.d.y; ray.dir_z = r.d.z;
 	ray.tnear = r.t.x; ray.tfar = r.t.y; ray.time = 0.f;
 
+	// Fires Embree shadow ray
 	rtcOccluded1(embree_scene, &ctx, &ray);
+
+	// tfar is set to -inf if no hit, hence > 0 check
+	// also make sure that less than max distance previously set
 	return ray.tfar > 0 && ray.tfar < r.t.y;
 }
 
@@ -92,6 +97,7 @@ Scene* Scene::parseFile(const std::string& filename) {
 	
 	scene->meshes = JSONHelper::readMeshes(jsonDocument, materials, emitters, scenepath);
 
+	// Create material vector from material map used for name matching
 	unsigned numMaterials = materials.size();
 	std::vector<MaterialPtr> materialVector = std::vector<MaterialPtr>(numMaterials);
 	for (auto it = materials.begin(); it != materials.end(); it++) {

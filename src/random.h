@@ -27,7 +27,7 @@
  */
 
 // https://github.com/wjakob/pcg32
-// Changes by Jonathan Granskog: Removal of some functions and added glm vec2 function
+// Changes by Jonathan Granskog: Removal of some functions and added glm vec2 and vec3 functions
 // also changed name to random.h
 
 #include <inttypes.h>

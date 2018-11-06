@@ -50,12 +50,16 @@ glm::vec3 SurfaceMaterial::evalDiffuse(SurfaceInteraction& si) const {
 
 glm::vec3 SurfaceMaterial::sampleSpecular(const glm::vec2& sample, SurfaceInteraction& si) const {
 	glm::vec3 wh = Sampling::GGX(sample, alpha);
+	// Reflect incoming vector with sampled half vector
 	si.wo = -si.wi + 2 * glm::dot(si.wi, wh) * wh;
-	glm::vec3 eval = evalSpecular(si);
+	glm::vec3 eval = evalSpecular(si); // evalSpecular sets pdf
 	if (si.pdf < FLT_EPS) {
 		si.pdf = 0.f;
 		return glm::vec3(0.f);
 	}
+
+	// Could also be simplified as terms cancel out in eval/pdf
+	// however, easier to read this way.
 	return eval / si.pdf * localCosTheta(si.wo);
 }
 
@@ -66,9 +70,12 @@ glm::vec3 SurfaceMaterial::sampleDiffuse(const glm::vec2& sample, SurfaceInterac
 		si.pdf = 0.f;
 		return glm::vec3(0.f);
 	}
+	// can just return diffuse color as other terms cancel out
+	// (eval * n.wo / pdf) = color/pi * n.wo / (n.wo / pi) = color
 	return diffuseColor;
 }
 
+// Final evaluate computes combination of responses given incident and outgoing directions
 glm::vec3 SurfaceMaterial::evaluate(SurfaceInteraction& si) const {
 	glm::vec3 diffuseEval = evalDiffuse(si);
 	float diffusePdf = si.pdf;
@@ -83,6 +90,9 @@ glm::vec3 SurfaceMaterial::evaluate(SurfaceInteraction& si) const {
 	return (1 - specular) * diffuseEval + specular * specularEval;
 }
 
+// Randomly samples outgoing direction from either specular or diffuse
+// could also return full color combination like eval
+// however sampling color randomly too feels cleaner
 glm::vec3 SurfaceMaterial::sample(const glm::vec2& sample, SurfaceInteraction& si) const {
 	glm::vec2 s = sample;
 

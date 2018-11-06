@@ -27,13 +27,15 @@ glm::vec3 Unidirectional::evaluate(const Ray& ray, const std::shared_ptr<Scene> 
 
 	while (intersected) {
 
-		// Add BSDF contribution if hit emitter
+		// Add material contribution if hit emitter
 		if (emitter != nullptr) {
 			if (!isnan(misWeightMat))
 				result += misWeightMat * throughput * emitterEval;
 		}
 
 		// RR
+		// comes after material contribution to make sure bounce count is equal
+		// between emitter sampling and material sampling
 		float s = sampler->next();
 		float success = fminf(0.75f, Lykta::luminance(throughput));
 		if (s < (1 - success)) break;
