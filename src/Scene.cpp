@@ -72,9 +72,8 @@ bool Scene::shadowIntersect(const Ray& r) const {
 	// Fires Embree shadow ray
 	rtcOccluded1(embree_scene, &ctx, &ray);
 
-	// tfar is set to -inf if no hit, hence > 0 check
-	// also make sure that less than max distance previously set
-	return !(ray.tfar < 0.f);
+	// tfar is set to -inf if hit, hence < 0 check
+	return ray.tfar < 0.f;
 }
 
 // Static function for parsing a scene file

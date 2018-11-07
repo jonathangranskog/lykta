@@ -1,5 +1,6 @@
 #include "Integrator.hpp"
 #include "Emitter.hpp"
+#include <iostream>
 
 using namespace Lykta;
 
@@ -49,7 +50,8 @@ glm::vec3 Unidirectional::evaluate(const Ray& ray, const std::shared_ptr<Scene> 
 			ei = EmitterInteraction(hit.pos);
 			const EmitterPtr emitter = scene->getRandomEmitter(sampler->next());
 			glm::vec3 Le = emitter->sample(sampler->next3D(), ei);
-			if (!scene->intersect(ei.shadowRay, Hit())) {
+			Hit tmp = Hit();
+			if (!scene->shadowIntersect(ei.shadowRay)) {
 				float emitterPDF = ei.pdf;
 				SurfaceInteraction si = SurfaceInteraction();
 				si.wi = glm::normalize(basis.toLocalSpace(-r.d));
