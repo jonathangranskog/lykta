@@ -14,6 +14,10 @@ include_directories(${EMBREE_INCLUDE_DIRS})
 # GLM
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ext/glm)
 
+# STB
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ext/stb)
+link_directories(${CMAKE_CURRENT_SOURCE_DIR}/ext/stb)
+
 # OpenMP
 if (APPLE)
 # This works with default 'brew install libomp'

@@ -3,20 +3,22 @@
 #include "Renderer.hpp"
 #include "omp.h"
 
-Lykta::Renderer::Renderer() {
+using namespace Lykta;
+
+Renderer::Renderer() {
 	resolution = glm::ivec2(800, 800);
-	image = std::vector<glm::vec3>(resolution.x * resolution.y);
+	image = Image<glm::vec3>(resolution.x, resolution.y);
 	integratorType = Integrator::Type::BSDF;
 }
 
-void Lykta::Renderer::openScene(const std::string& filename) {
-	scene = std::shared_ptr<Lykta::Scene>(Scene::parseFile(filename));
+void Renderer::openScene(const std::string& filename) {
+	scene = std::shared_ptr<Scene>(Scene::parseFile(filename));
 	resolution = scene->getResolution();
-	image = std::vector<glm::vec3>(resolution.x * resolution.y);
+	image = Image<glm::vec3>(resolution.x, resolution.y);
 	refresh();
 }
 
-void Lykta::Renderer::refresh() {
+void Renderer::refresh() {
 	iteration = 0;
 
 	// Select integrator
@@ -40,7 +42,7 @@ void Lykta::Renderer::refresh() {
 	}
 }
 
-void Lykta::Renderer::renderFrame() {
+void Renderer::renderFrame() {
 	float blend = 1.f / (iteration + 1);
 
 	#pragma omp parallel for schedule(dynamic) 

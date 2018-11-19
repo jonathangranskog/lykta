@@ -4,13 +4,14 @@
 #include <string>
 #include <glm/vec3.hpp>
 #include "Integrator.hpp"
+#include "Image.hpp"
 #include "Scene.hpp"
 #include "random.h"
 
 namespace Lykta {
 	class Renderer {
 	private:
-		std::vector<glm::vec3> image;
+		Image<glm::vec3> image;
 		std::shared_ptr<Scene> scene;
 		std::unique_ptr<Integrator> integrator;
 		Integrator::Type integratorType;
@@ -26,7 +27,7 @@ namespace Lykta {
 		
 		void renderFrame();
 
-		const std::vector<glm::vec3>& getImage() const {
+		Image<glm::vec3>& getImage() {
 			return image;
 		}
 
