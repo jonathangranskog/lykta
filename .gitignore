@@ -1,3 +1,8 @@
 build/
 scenes/
 *.DS_Store
+lykta.config
+lykta.creator
+lykta.creator.user
+lykta.files
+lykta.includes
