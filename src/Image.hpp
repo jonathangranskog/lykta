@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <string>
+#include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 
@@ -22,7 +23,15 @@ namespace Lykta {
 			return data[i];
 		}
 
+        T read(int i) {
+            return data[i];
+        }
+
 		void save(const std::string& path) const;
+
+        glm::ivec2 getDims() const {
+            return glm::ivec2(width, height);
+        }
 
 		T* getData() {
 			return data.data();
