@@ -15,7 +15,7 @@
 
 namespace Lykta {
 
-	static class JSONHelper {
+	class JSONHelper {
 	private:
 		
 		static glm::vec3 readVector3(const std::string& name, const rapidjson::Value& val) {

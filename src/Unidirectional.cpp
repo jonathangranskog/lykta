@@ -1,6 +1,7 @@
 #include "Integrator.hpp"
 #include "Emitter.hpp"
 #include <iostream>
+#include <cmath>
 
 using namespace Lykta;
 
@@ -30,7 +31,7 @@ glm::vec3 Unidirectional::evaluate(const Ray& ray, const std::shared_ptr<Scene> 
 
 		// Add material contribution if hit emitter
 		if (emitter != nullptr) {
-			if (!isnan(misWeightMat))
+			if (!std::isnan(misWeightMat))
 				result += misWeightMat * throughput * emitterEval;
 		}
 
@@ -62,7 +63,7 @@ glm::vec3 Unidirectional::evaluate(const Ray& ray, const std::shared_ptr<Scene> 
 				float materialPDF = si.pdf;
 
 				misWeightEmitter = balanceHeuristic(emitterPDF, materialPDF);
-				if (!isnan(misWeightEmitter)) {
+				if (!std::isnan(misWeightEmitter)) {
 					float nl = abs(glm::dot(ei.direction, hit.normal));
 					result += numLights * misWeightEmitter * nl * throughput * materialEval * Le;
 				}

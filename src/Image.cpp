@@ -6,24 +6,28 @@
 
 using namespace Lykta;
 
+template <>
 Image<glm::vec3>::Image(int w, int h) {
 	data = std::vector<glm::vec3>(w * h);
 	width = w;
 	height = h;
 }
 
+template <>
 Image<float>::Image(int w, int h) {
 	data = std::vector<float>(w * h);
 	width = w;
 	height = h;
 }
 
+template <>
 Image<glm::vec4>::Image(int w, int h) {
 	data = std::vector<glm::vec4>(w * h);
 	width = w;
 	height = h;
 }
 
+template <>
 Image<glm::vec3>::Image(const std::string& path) {
 	int channels = 0;
 	float* out = stbi_loadf(path.c_str(), &width, &height, &channels, 0);
@@ -44,6 +48,7 @@ Image<glm::vec3>::Image(const std::string& path) {
 	}
 }
 
+template <>
 Image<glm::vec4>::Image(const std::string& path) {
 	int channels = 0;
 	float* out = stbi_loadf(path.c_str(), &width, &height, &channels, 0);
@@ -66,6 +71,7 @@ Image<glm::vec4>::Image(const std::string& path) {
 	}
 }
 
+template <>
 Image<float>::Image(const std::string& path) {
 	int channels = 0;
 	float* out = stbi_loadf(path.c_str(), &width, &height, &channels, 0);
@@ -80,14 +86,17 @@ Image<float>::Image(const std::string& path) {
 	}
 }
 
+template <>
 void Image<glm::vec3>::save(const std::string& path) const {
 	stbi_write_hdr(path.c_str(), width, height, 3, (float*)this->data.data());
 }
 
+template <>
 void Image<glm::vec4>::save(const std::string& path) const {
 	stbi_write_hdr(path.c_str(), width, height, 4, (float*)this->data.data());
 }
 
+template <>
 void Image<float>::save(const std::string& path) const {
 	stbi_write_hdr(path.c_str(), width, height, 1, this->data.data());
 }

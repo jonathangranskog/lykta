@@ -17,7 +17,7 @@ namespace Lykta {
 
 		glm::mat4 makeProjectionToCamera(float fov, float aspect, float nearClip, float farClip) {
 			float recip = 1.f / (farClip - nearClip);
-			float cot = 1.f / std::tanf(fov / 180.f * M_PI);
+			float cot = 1.f / std::tan(fov / 180.f * M_PI);
 			glm::mat4 persp = glm::mat4();
 			// Create projection matrix that transforms from world space to camera space
 			persp[0] = glm::vec4(cot, 0, 0, 0);

@@ -6,7 +6,7 @@
 
 namespace Lykta {
 
-	template <class T>
+	template <typename T>
 	class Image {
 
 	private:
