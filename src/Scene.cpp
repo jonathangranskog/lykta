@@ -104,6 +104,7 @@ Scene* Scene::parseFile(const std::string& filename) {
 		materialVector[it->second.first] = it->second.second;
 	}
 
+	scene->environment = JSONHelper::readEnvironment(jsonDocument, emitters, scenepath);
 	scene->materials = materialVector;
 	scene->emitters = emitters;
 	scene->camera = std::unique_ptr<Camera>(JSONHelper::readCamera(jsonDocument));

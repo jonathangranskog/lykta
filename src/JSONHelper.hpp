@@ -293,5 +293,30 @@ namespace Lykta {
 			Camera* cam = new PerspectiveCamera();
 			return cam;
 		}
+
+		static EmitterPtr readEnvironment(rapidjson::Document& document,
+									std::vector<EmitterPtr>& emitters,
+									filesystem::path& scenepath) {
+			if (!document.HasMember("environment")) return nullptr;
+
+			const rapidjson::Value& environmentObject = document["environment"];
+			assert(environmentObject.HasMember("map"));
+			assert(environmentObject["map"].IsString());
+
+			std::string filename = environmentObject["map"].GetString();
+			// If file exists
+			if (getRealPath(filename, scenepath)) {
+				TexturePtr<glm::vec3> map = TexturePtr<glm::vec3>(new Texture<glm::vec3>(filename));
+				float intensity = 1.f;
+				if (environmentObject.HasMember("intensity") && environmentObject["intensity"].IsFloat()) 
+					intensity = environmentObject["intensity"].GetFloat();
+				EmitterPtr emitter = EmitterPtr(new EnvironmentEmitter(map, intensity));
+				emitters.push_back(emitter);
+				return emitter;
+			}
+			else {
+				return nullptr;
+			}
+		}
 	};
 }

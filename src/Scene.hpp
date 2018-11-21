@@ -18,6 +18,7 @@ namespace Lykta {
 		std::vector<MaterialPtr> materials;
 		std::vector<MeshPtr> meshes;
 		std::vector<EmitterPtr> emitters;
+		EmitterPtr environment = nullptr;
 		// TODO: Add vector of textures
 		// Embree specific variables
 		RTCDevice embree_device;
@@ -45,6 +46,10 @@ namespace Lykta {
 
 		const std::vector<EmitterPtr> getEmitters() {
 			return emitters;
+		}
+
+		const EmitterPtr getEnvironment() {
+			return environment;
 		}
 
 		const std::vector<MeshPtr> getMeshes() {

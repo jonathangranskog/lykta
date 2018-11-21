@@ -46,5 +46,20 @@ namespace Lykta {
 			return glm::vec3(u, v, 1.f - u - v);
 		}
 
+		static inline glm::vec3 uniformCylinder(const glm::vec2& sample) {
+			float wz = 2 * sample.x - 1;
+			float theta = 2 * M_PI * sample.y;
+			return glm::vec3(std::cos(theta), std::sin(theta), wz);
+		}
+
+		static inline glm::vec3 uniformSphere(const glm::vec2& sample) {
+			glm::vec3 cylinder = uniformCylinder(sample);
+			float r = sqrtf(1 - cylinder.z * cylinder.z);
+			return glm::vec3(r * cylinder.x, r * cylinder.y, cylinder.z);
+		}
+
+		static inline float uniformSpherePdf(const glm::vec3& dir) {
+			return 1.f / (4 * M_PI);
+		}
 	};
 }

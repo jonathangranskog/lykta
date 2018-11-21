@@ -15,8 +15,18 @@ glm::vec3 Unidirectional::evaluate(const Ray& ray, const std::shared_ptr<Scene> 
 	
 	Lykta::Hit hit = Hit();
 	bool intersected = scene->intersect(r, hit);
-	
-	if (!intersected) return glm::vec3(0.f);
+	EmitterPtr environment = scene->getEnvironment();
+
+	if (!intersected) {
+		if (environment) {
+			EmitterInteraction envei;
+			envei.direction = r.d;
+			return environment->eval(envei);
+		}
+		else {
+			return glm::vec3(0.f);
+		}
+	}
 
 	MaterialPtr material = scene->getMaterial(hit.geomID);
 	MeshPtr mesh = meshes[hit.geomID];
@@ -81,6 +91,7 @@ glm::vec3 Unidirectional::evaluate(const Ray& ray, const std::shared_ptr<Scene> 
 		r = Ray(hit.pos, out);
 		hit = Hit();
 		intersected = scene->intersect(r, hit);
+		throughput *= color;
 
 		if (intersected) {
 			// Reinit variables
@@ -98,9 +109,15 @@ glm::vec3 Unidirectional::evaluate(const Ray& ray, const std::shared_ptr<Scene> 
 				misWeightMat = balanceHeuristic(materialPDF, emitterPDF);
 			}
 		}
+		else if (environment) {
+			ei = EmitterInteraction();
+			ei.direction = r.d;
+			emitterEval = environment->eval(ei);
+			misWeightMat = balanceHeuristic(si.pdf, ei.pdf);
+			result += misWeightMat * throughput * emitterEval;
+		}
 		
 		bounces++;
-		throughput *= color;
 	}
 
 	return result;

@@ -3,6 +3,7 @@
 #include <memory>
 #include "common.h"
 #include "Mesh.hpp"
+#include "Texture.hpp"
 
 namespace Lykta {
 
@@ -52,5 +53,22 @@ namespace Lykta {
 		virtual glm::vec3 eval(EmitterInteraction& ei) const;
 		virtual glm::vec3 sample(const glm::vec3& s, EmitterInteraction& ei) const;
 
+	};
+
+	class EnvironmentEmitter : public Emitter {
+	private:
+		TexturePtr<glm::vec3> map;
+		float intensity;
+
+		glm::vec2 dir2uv(const glm::vec3& dir) const;
+		glm::vec3 uv2dir(const glm::vec2& uv) const;
+	
+	public:
+		EnvironmentEmitter(TexturePtr<glm::vec3> m, float intens = 1.f) : map(m), intensity(intens) {}
+		EnvironmentEmitter() {}
+		~EnvironmentEmitter() {}
+
+		virtual glm::vec3 eval(EmitterInteraction& ei) const;
+		virtual glm::vec3 sample(const glm::vec3& s, EmitterInteraction& ei) const;
 	};
 }

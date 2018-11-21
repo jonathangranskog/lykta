@@ -1,4 +1,5 @@
 #include "Integrator.hpp"
+#include "Emitter.hpp"
 
 using namespace Lykta;
 
@@ -11,6 +12,12 @@ glm::vec3 BSDFIntegrator::evaluate(const Ray& ray, const std::shared_ptr<Scene> 
 	while (true) {
 		Lykta::Hit hit;
 		if (!scene->intersect(r, hit)) {
+			EmitterPtr environmentMap = scene->getEnvironment();
+			if (environmentMap) {
+				EmitterInteraction ei;
+				ei.direction = r.d;
+				result += throughput * environmentMap->eval(ei);
+			}
 			break;
 		}
 
