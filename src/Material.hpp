@@ -18,7 +18,6 @@ namespace Lykta {
     // with values evaluated from textures
     struct MaterialParameters {
         glm::vec3 diffuseColor;
-        glm::vec3 emissiveColor;
         float specular;
         float specularTint;
         float roughness;
@@ -31,6 +30,7 @@ namespace Lykta {
 	private:
         // Constant parameters
 		glm::vec3 diffuseColor;
+        glm::vec3 emissiveColor;
         float specular;
 		float specularTint;
 		float roughness;
