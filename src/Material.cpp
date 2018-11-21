@@ -9,13 +9,13 @@ MaterialParameters SurfaceMaterial::evalMaterialParameters(const glm::vec2& uv) 
     if (diffuseTexture) params.diffuseColor = diffuseTexture->eval(uv);
     else params.diffuseColor = diffuseColor;
 
-    if (specularTexture) params.specular = specularTexture->eval(uv);
+    if (specularTexture) params.specular = clamp(specularTexture->eval(uv), 0.f, 1.f);
     else params.specular = specular;
 
-    if (tintTexture) params.specularTint = tintTexture->eval(uv);
+    if (tintTexture) params.specularTint = clamp(tintTexture->eval(uv), 0.f, 1.f);
     else params.specularTint = specularTint;
 
-    if (roughnessTexture) params.roughness = roughnessTexture->eval(uv);
+    if (roughnessTexture) params.roughness = clamp(roughnessTexture->eval(uv), 0.05f, 1.f);
     else params.roughness = roughness;
 
     params.alpha = params.roughness * params.roughness;
