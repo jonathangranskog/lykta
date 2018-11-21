@@ -12,6 +12,7 @@
 #include "Material.hpp"
 #include "Mesh.hpp"
 #include "Emitter.hpp"
+#include "Texture.hpp"
 
 namespace Lykta {
 
@@ -62,6 +63,74 @@ namespace Lykta {
 
 			return matrix;
 		}
+
+        static inline bool getRealPath(std::string& filename, filesystem::path& scenepath) {
+            filesystem::path filepath = filesystem::path(filename);
+            // If file is not found using relative path, make absolute path
+            if (!filepath.is_file()) filepath = scenepath/filepath;
+            else {
+                filename = filepath.str();
+                return true;
+            }
+
+            // If file is still not found, then print error.
+            if (!filepath.is_file()) {
+                std::cerr << filepath.str() << " could not be found -- skipping!" << std::endl;
+                return false;
+            }
+
+            filename = filepath.str();
+            return true;
+        }
+
+        static TexturePtr<float> readFloatTexture(const std::string& name, const rapidjson::Value& val,
+                                             filesystem::path& scenepath) {
+            TexturePtr<float> ptr = nullptr;
+            if (val.HasMember(name.c_str())) {
+                const rapidjson::Value& file = val[name.c_str()];
+                if (file.IsString()) {
+                    std::string filename = std::string(file.GetString());
+                    if (getRealPath(filename, scenepath)) return TexturePtr<float>(new Texture<float>(filename));
+                    else return nullptr;
+                } else {
+                    std::cout << "Texture: " << name.c_str() << " is not a string!" << std::endl;
+                }
+            }
+
+            return ptr;
+        }
+
+        static TexturePtr<glm::vec3> readVec3Texture(const std::string& name, const rapidjson::Value& val, filesystem::path& scenepath) {
+            TexturePtr<glm::vec3> ptr = nullptr;
+            if (val.HasMember(name.c_str())) {
+                const rapidjson::Value& file = val[name.c_str()];
+                if (file.IsString()) {
+                    std::string filename = std::string(file.GetString());
+                    if (getRealPath(filename, scenepath)) return TexturePtr<glm::vec3>(new Texture<glm::vec3>(filename));
+                    else return nullptr;
+                } else {
+                    std::cout << "Texture: " << name.c_str() << " is not a string!" << std::endl;
+                }
+            }
+
+            return ptr;
+        }
+
+        static TexturePtr<glm::vec4> readVec4Texture(const std::string& name, const rapidjson::Value& val, filesystem::path& scenepath) {
+            TexturePtr<glm::vec4> ptr = nullptr;
+            if (val.HasMember(name.c_str())) {
+                const rapidjson::Value& file = val[name.c_str()];
+                if (file.IsString()) {
+                    std::string filename = std::string(file.GetString());
+                    if (getRealPath(filename, scenepath)) return TexturePtr<glm::vec4>(new Texture<glm::vec4>(filename));
+                    else return nullptr;
+                } else {
+                    std::cout << "Texture: " << name.c_str() << " is not a string!" << std::endl;
+                }
+            }
+
+            return ptr;
+        }
 
 	public:
 		// Reads in meshes from JSON document...
@@ -120,7 +189,7 @@ namespace Lykta {
 			return meshes;
 		}
 
-		static std::map<std::string, std::pair<unsigned, MaterialPtr>>readMaterials(rapidjson::Document& document) {
+        static std::map<std::string, std::pair<unsigned, MaterialPtr>>readMaterials(rapidjson::Document& document, filesystem::path& scenepath) {
 			std::map<std::string, std::pair<unsigned, MaterialPtr> > materialMap;
 
 			if (!document.HasMember("materials")) return materialMap;
@@ -157,7 +226,26 @@ namespace Lykta {
 				if (arr[i].HasMember("ior")) ior = arr[i]["ior"].GetFloat();
 				else ior = 1.33f;
 
-				MaterialPtr mat = MaterialPtr(new SurfaceMaterial(diffuseColor, emissiveColor, specular, specularTint, roughness, ior));
+                // Read textures
+                TexturePtr<glm::vec3> diffuseTexture = nullptr;
+                if (arr[i].HasMember("diffuseTexture")) diffuseTexture = readVec3Texture("diffuseTexture", arr[i], scenepath);
+
+                TexturePtr<float> specularTexture = nullptr;
+                if (arr[i].HasMember("specularTexture")) specularTexture = readFloatTexture("specularTexture", arr[i], scenepath);
+
+                TexturePtr<float> tintTexture = nullptr;
+                if (arr[i].HasMember("tintTexture")) tintTexture = readFloatTexture("tintTexture", arr[i], scenepath);
+
+                TexturePtr<float> roughnessTexture = nullptr;
+                if (arr[i].HasMember("roughnessTexture")) roughnessTexture = readFloatTexture("roughnessTexture", arr[i], scenepath);
+
+
+                // Create material
+                MaterialPtr mat = MaterialPtr(new SurfaceMaterial(diffuseColor, emissiveColor,
+                                                                  specular, specularTint,
+                                                                  roughness, ior, diffuseTexture,
+                                                                  specularTexture, tintTexture,
+                                                                  roughnessTexture));
 
 				const rapidjson::Value& name = arr[i]["name"];
 				assert(name.IsString());

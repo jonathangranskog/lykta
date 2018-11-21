@@ -36,21 +36,21 @@ int Texture<T>::getIndex(const glm::vec2& st) const {
 }
 
 template<>
-glm::vec3 Texture<glm::vec3>::operator()(const glm::vec2& uv) const {
+glm::vec3 Texture<glm::vec3>::eval(const glm::vec2& uv) const {
     glm::vec2 st = uvNormalize(uv);
     int index = getIndex(st);
     return image->read(index);
 }
 
 template<>
-glm::vec4 Texture<glm::vec4>::operator()(const glm::vec2& uv) const {
+glm::vec4 Texture<glm::vec4>::eval(const glm::vec2& uv) const {
     glm::vec2 st = uvNormalize(uv);
     int index = getIndex(st);
     return image->read(index);
 }
 
 template<>
-float Texture<float>::operator()(const glm::vec2& uv) const {
+float Texture<float>::eval(const glm::vec2& uv) const {
     glm::vec2 st = uvNormalize(uv);
     int index = getIndex(st);
     return image->read(index);

@@ -18,7 +18,10 @@ namespace Lykta {
         int getIndex(const glm::vec2& st) const;
 
         // Read value from image based on UV coord
-        T operator()(const glm::vec2& uv) const;
+        T eval(const glm::vec2& uv) const;
 
     };
+
+    template <typename T>
+    using TexturePtr = std::shared_ptr<Texture<T>>;
 }

@@ -93,7 +93,7 @@ Scene* Scene::parseFile(const std::string& filename) {
 	scenepath = scenepath.parent_path();
 	
 	std::vector<EmitterPtr> emitters;
-	std::map<std::string, std::pair<unsigned, MaterialPtr> > materials = JSONHelper::readMaterials(jsonDocument);
+    std::map<std::string, std::pair<unsigned, MaterialPtr> > materials = JSONHelper::readMaterials(jsonDocument, scenepath);
 	
 	scene->meshes = JSONHelper::readMeshes(jsonDocument, materials, emitters, scenepath);
 

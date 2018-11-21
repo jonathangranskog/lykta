@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "Texture.hpp"
 
 namespace Lykta {
 	// All in local shading space where z axis is along normal
@@ -12,18 +13,38 @@ namespace Lykta {
 		float pdf;
 	};
 
+    // Input into material functions
+    // These values contain values that are combined
+    // with values evaluated from textures
+    struct MaterialParameters {
+        glm::vec3 diffuseColor;
+        glm::vec3 emissiveColor;
+        float specular;
+        float specularTint;
+        float roughness;
+        float ior;
+        float alpha;
+        float alpha2;
+    };
+
 	class SurfaceMaterial {
 	private:
+        // Constant parameters
 		glm::vec3 diffuseColor;
-		glm::vec3 emissiveColor;
-		float specular;
+        float specular;
 		float specularTint;
 		float roughness;
 		float ior;
 
 		float alpha;
 		float alpha2;
-		
+
+        // Textures
+        TexturePtr<glm::vec3> diffuseTexture;
+        TexturePtr<float> specularTexture;
+        TexturePtr<float> tintTexture;
+        TexturePtr<float> roughnessTexture;
+
 	public:
 		SurfaceMaterial(const glm::vec3& diffuse, const glm::vec3& emission, float spec, float spectint, float rough, float ior_ ) {
 			diffuseColor = diffuse;
@@ -35,21 +56,49 @@ namespace Lykta {
 
 			alpha = rough * rough;
 			alpha2 = alpha * alpha;
+
+            diffuseTexture = nullptr;
+            specularTexture = nullptr;
+            tintTexture = nullptr;
+            roughnessTexture = nullptr;
 		};
+
+        SurfaceMaterial(const glm::vec3 &diffuse, const glm::vec3 &emission, float spec,
+                        float spectint, float rough, float ior_,
+                        TexturePtr<glm::vec3> diffTex, TexturePtr<float> specTex,
+                        TexturePtr<float> tintTex, TexturePtr<float> roughTex) {
+            diffuseColor = diffuse;
+            emissiveColor = emission;
+            specular = spec;
+            specularTint = spectint;
+            roughness = rough;
+            ior = ior_;
+
+            alpha = rough * rough;
+            alpha2 = alpha * alpha;
+
+            diffuseTexture = diffTex;
+            specularTexture = specTex;
+            tintTexture = tintTex;
+            roughnessTexture = roughTex;
+        };
+
 		~SurfaceMaterial() {};
 		SurfaceMaterial() {};
+
+        MaterialParameters evalMaterialParameters(const glm::vec2& uv) const;
 
 		glm::vec3 getEmission() const {
 			return emissiveColor;
 		}
 
-		glm::vec3 evalSpecular(SurfaceInteraction& si) const;
-		glm::vec3 evalDiffuse(SurfaceInteraction& si) const;
-		glm::vec3 sampleSpecular(const glm::vec2& sample, SurfaceInteraction& si) const;
-		glm::vec3 sampleDiffuse(const glm::vec2& sample, SurfaceInteraction& si) const;
+        glm::vec3 evalSpecular(SurfaceInteraction& si, const MaterialParameters& params) const;
+        glm::vec3 evalDiffuse(SurfaceInteraction& si, const MaterialParameters& params) const;
+        glm::vec3 sampleSpecular(const glm::vec2& sample, SurfaceInteraction& si, const MaterialParameters& params) const;
+        glm::vec3 sampleDiffuse(const glm::vec2& sample, SurfaceInteraction& si, const MaterialParameters& params) const;
 		
-		glm::vec3 evaluate(SurfaceInteraction& si) const;
-		glm::vec3 sample(const glm::vec2& sample, SurfaceInteraction& si) const;
+        glm::vec3 evaluate(SurfaceInteraction& si, const MaterialParameters& params) const;
+        glm::vec3 sample(const glm::vec2& sample, SurfaceInteraction& si, const MaterialParameters& params) const;
 
 	};
 }

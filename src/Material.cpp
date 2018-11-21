@@ -3,7 +3,29 @@
 
 using namespace Lykta;
 
-glm::vec3 SurfaceMaterial::evalSpecular(SurfaceInteraction& si) const {
+MaterialParameters SurfaceMaterial::evalMaterialParameters(const glm::vec2& uv) const {
+    MaterialParameters params;
+
+    if (diffuseTexture) params.diffuseColor = diffuseTexture->eval(uv);
+    else params.diffuseColor = diffuseColor;
+
+    if (specularTexture) params.specular = specularTexture->eval(uv);
+    else params.specular = specular;
+
+    if (tintTexture) params.specularTint = tintTexture->eval(uv);
+    else params.specularTint = specularTint;
+
+    if (roughnessTexture) params.roughness = roughnessTexture->eval(uv);
+    else params.roughness = roughness;
+
+    params.alpha = params.roughness * params.roughness;
+    params.alpha2 = params.alpha * params.alpha;
+    params.ior = ior;
+
+    return params;
+}
+
+glm::vec3 SurfaceMaterial::evalSpecular(SurfaceInteraction& si, const MaterialParameters& params) const {
 	if (localCosTheta(si.wo) <= 0.f || localCosTheta(si.wi) <= 0.f) {
 		si.pdf = 0.f;
 		return glm::vec3(0.f);
@@ -19,25 +41,25 @@ glm::vec3 SurfaceMaterial::evalSpecular(SurfaceInteraction& si) const {
 	float ni = localCosTheta(si.wi);
 	float no = localCosTheta(si.wo);
 
-	float tmp = nh * nh * (alpha2 -1) + 1;
-	float D = alpha2 / (M_PI * tmp * tmp);
+    float tmp = nh * nh * (params.alpha2 -1) + 1;
+    float D = params.alpha2 / (M_PI * tmp * tmp);
 
-	float F = fresnel(fabsf(glm::dot(si.wo, wh)), 1.f, ior);
+    float F = fresnel(fabsf(glm::dot(si.wo, wh)), 1.f, params.ior);
 	
 	float nom = 2 * ni * no;
-	float denom1 = no * sqrtf(alpha2 + (1 - alpha2) * ni * ni);
-	float denom2 = ni * sqrtf(alpha2 + (1 - alpha2) * no * no);
+    float denom1 = no * sqrtf(params.alpha2 + (1 - params.alpha2) * ni * ni);
+    float denom2 = ni * sqrtf(params.alpha2 + (1 - params.alpha2) * no * no);
 	float G = nom / (denom1 + denom2);
 
 	float denom = 1.f / (4 * fabsf(localCosTheta(si.wi) * localCosTheta(si.wo)));
 	
-	glm::vec3 color = (1.f - specularTint) * glm::vec3(1.f) + specularTint * diffuseColor;
-	si.pdf = Sampling::GGXPdf(wh, si.wi, alpha);
+    glm::vec3 color = (1.f - params.specularTint) * glm::vec3(1.f) + params.specularTint * params.diffuseColor;
+    si.pdf = Sampling::GGXPdf(wh, si.wi, params.alpha);
 	
 	return D * F * G * denom * color;
 }
 
-glm::vec3 SurfaceMaterial::evalDiffuse(SurfaceInteraction& si) const {
+glm::vec3 SurfaceMaterial::evalDiffuse(SurfaceInteraction& si, const MaterialParameters& params) const {
 	// If on opposite side of normal
 	if (localCosTheta(si.wo) <= 0.f || localCosTheta(si.wi) <= 0.f) {
 		si.pdf = 0.f;
@@ -45,14 +67,14 @@ glm::vec3 SurfaceMaterial::evalDiffuse(SurfaceInteraction& si) const {
 	}
 	
 	si.pdf = Sampling::cosineHemispherePdf(si.wo);
-	return INV_PI * diffuseColor;
+    return INV_PI * params.diffuseColor;
 }
 
-glm::vec3 SurfaceMaterial::sampleSpecular(const glm::vec2& sample, SurfaceInteraction& si) const {
-	glm::vec3 wh = Sampling::GGX(sample, alpha);
+glm::vec3 SurfaceMaterial::sampleSpecular(const glm::vec2& sample, SurfaceInteraction& si, const MaterialParameters& params) const {
+    glm::vec3 wh = Sampling::GGX(sample, params.alpha);
 	// Reflect incoming vector with sampled half vector
 	si.wo = -si.wi + 2 * glm::dot(si.wi, wh) * wh;
-	glm::vec3 eval = evalSpecular(si); // evalSpecular sets pdf
+    glm::vec3 eval = evalSpecular(si, params); // evalSpecular sets pdf
 	if (si.pdf < FLT_EPS) {
 		si.pdf = 0.f;
 		return glm::vec3(0.f);
@@ -63,7 +85,7 @@ glm::vec3 SurfaceMaterial::sampleSpecular(const glm::vec2& sample, SurfaceIntera
 	return eval / si.pdf * localCosTheta(si.wo);
 }
 
-glm::vec3 SurfaceMaterial::sampleDiffuse(const glm::vec2& sample, SurfaceInteraction& si) const {
+glm::vec3 SurfaceMaterial::sampleDiffuse(const glm::vec2& sample, SurfaceInteraction& si, const MaterialParameters& params) const {
 	si.wo = Sampling::cosineHemisphere(sample);
 	si.pdf = Sampling::cosineHemispherePdf(si.wo);
 	if (si.pdf < FLT_EPS) {
@@ -72,36 +94,36 @@ glm::vec3 SurfaceMaterial::sampleDiffuse(const glm::vec2& sample, SurfaceInterac
 	}
 	// can just return diffuse color as other terms cancel out
 	// (eval * n.wo / pdf) = color/pi * n.wo / (n.wo / pi) = color
-	return diffuseColor;
+    return params.diffuseColor;
 }
 
 // Final evaluate computes combination of responses given incident and outgoing directions
-glm::vec3 SurfaceMaterial::evaluate(SurfaceInteraction& si) const {
-	glm::vec3 diffuseEval = evalDiffuse(si);
+glm::vec3 SurfaceMaterial::evaluate(SurfaceInteraction& si, const MaterialParameters& params) const {
+    glm::vec3 diffuseEval = evalDiffuse(si, params);
 	float diffusePdf = si.pdf;
-	glm::vec3 specularEval = evalSpecular(si);
+    glm::vec3 specularEval = evalSpecular(si, params);
 	float specularPdf = si.pdf;
 
-	si.pdf = (1 - specular) * diffusePdf + specular * specularPdf;
+    si.pdf = (1 - params.specular) * diffusePdf + params.specular * specularPdf;
 	if (si.pdf < FLT_EPS) {
 		si.pdf = 0.f;
 		return glm::vec3(0.f);
 	}
-	return (1 - specular) * diffuseEval + specular * specularEval;
+    return (1 - params.specular) * diffuseEval + params.specular * specularEval;
 }
 
 // Randomly samples outgoing direction from either specular or diffuse
 // could also return full color combination like eval
 // however sampling color randomly too feels cleaner
-glm::vec3 SurfaceMaterial::sample(const glm::vec2& sample, SurfaceInteraction& si) const {
+glm::vec3 SurfaceMaterial::sample(const glm::vec2& sample, SurfaceInteraction& si, const MaterialParameters& params) const {
 	glm::vec2 s = sample;
 
-	if (s.x < specular) {
-		s.x /= specular;
-		return sampleSpecular(s, si);
+    if (s.x < params.specular) {
+        s.x /= params.specular;
+        return sampleSpecular(s, si, params);
 	}
 	else {
-		s.x = (s.x - specular) / (1.f - specular);
-		return sampleDiffuse(s, si);
+        s.x = (s.x - params.specular) / (1.f - params.specular);
+        return sampleDiffuse(s, si, params);
 	}
 }

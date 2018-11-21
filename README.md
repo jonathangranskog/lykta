@@ -8,7 +8,7 @@ Future plans include possibly creating a Houdini plug-in...
 
 ### Building
 
-This project uses CMake version 3.12 or higher for building. Everything should work automatically on Windows and Linux (not tested), but on OS X some additional work is necessary.
+This project uses CMake version 3.12 or higher for building. Everything should work automatically on Windows and Linux with the correct version of CMake, but on OS X some additional work is necessary.
 
 The project requires Embree to be installed on the computer and discoverable by CMake. Follow the installation instructions at: https://embree.github.io/downloads.html
 

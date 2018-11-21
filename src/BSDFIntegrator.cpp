@@ -32,7 +32,8 @@ glm::vec3 BSDFIntegrator::evaluate(const Ray& ray, const std::shared_ptr<Scene> 
 		si.uv = hit.texcoord;
 		si.pos = hit.pos;
 		si.wi = glm::normalize(basis.toLocalSpace(-r.d));
-		glm::vec3 color = material->sample(sampler->next2D(), si);
+        MaterialParameters params = material->evalMaterialParameters(si.uv);
+        glm::vec3 color = material->sample(sampler->next2D(), si, params);
 		glm::vec3 out = glm::normalize(basis.fromLocalSpace(si.wo));
 
 		throughput *= color;
