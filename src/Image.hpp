@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <math.h>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
@@ -16,7 +17,7 @@ namespace Lykta {
 		int width, height;
 
 		inline unsigned char linear_to_srgb(float linear) const {
-			float v = (linear <= 0.0031308f) ? 12.92f * linear : (1 + 0.055f) * std::powf(linear, 1.f / 2.4f) - 0.055f;
+			float v = (linear <= 0.0031308f) ? 12.92f * linear : (1 + 0.055f) * pow(linear, 1.f / 2.4f) - 0.055f;
 			float u = 255 * v;
 			unsigned char result = std::max(std::min(u, 255.f), 0.f);
 			return result;
