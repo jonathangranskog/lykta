@@ -56,10 +56,10 @@ void Renderer::renderFrame() {
 
 		// Second, create ray with camera
 		Ray ray;
-		scene->getCamera()->createRay(ray, imageSample, sampler->next2D());
+		glm::vec3 W = scene->getCamera()->createRay(ray, imageSample, sampler->next2D());
 
 		// Third integrate
-		glm::vec3 result = integrator->evaluate(ray, scene, sampler);
+		glm::vec3 result = W * integrator->evaluate(ray, scene, sampler);
 
 		if (iteration > 0)
 			image[j * resolution.x + i] = (1 - blend) * image[j * resolution.x + i] + blend * result;

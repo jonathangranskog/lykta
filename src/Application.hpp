@@ -107,6 +107,15 @@ namespace Lykta {
 				glfwSetWindowSize(glfwWindow(), renderer->getResolution().x, renderer->getResolution().y);
 			});
 
+			nanogui::Button* saveButton = new nanogui::Button(window, "Save Render", 0x0000F239);
+			saveButton->setCallback([this]() {
+				std::pair<std::string, std::string> pngtype = std::pair<std::string, std::string>("png", "Image");
+				std::vector<std::pair<std::string, std::string> > filetypes;
+				filetypes.push_back(pngtype);
+				std::string filename = nanogui::file_dialog(filetypes, true);
+				renderer->getImage().save(filename);
+			});
+
 			// Integrator box
 			new nanogui::Label(window, "Integrator", "sans-bold");
 			integratorBox = new nanogui::ComboBox(window, { "BSDF", "AO", "PT" });

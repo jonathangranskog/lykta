@@ -3,6 +3,7 @@
 #include "stb/stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb/stb_image_write.h"
+#include <algorithm>
 
 using namespace Lykta;
 
@@ -88,15 +89,44 @@ Image<float>::Image(const std::string& path) {
 
 template <>
 void Image<glm::vec3>::save(const std::string& path) const {
-	stbi_write_hdr(path.c_str(), width, height, 3, (float*)this->data.data());
+	std::vector<unsigned char> image = std::vector<unsigned char>(width * height * 3);
+	for (int i = 0; i < width * height; i++) {
+		unsigned char r = linear_to_srgb(data[i].x);
+		unsigned char g = linear_to_srgb(data[i].y);
+		unsigned char b = linear_to_srgb(data[i].z);
+
+		image[i * 3 + 0] = r;
+		image[i * 3 + 1] = g;
+		image[i * 3 + 2] = b;
+	}
+
+	stbi_write_png(path.c_str(), width, height, 3, image.data(), 0);
 }
 
 template <>
 void Image<glm::vec4>::save(const std::string& path) const {
-	stbi_write_hdr(path.c_str(), width, height, 4, (float*)this->data.data());
+	std::vector<unsigned char> image = std::vector<unsigned char>(width * height * 4);
+	for (int i = 0; i < width * height; i++) {
+		unsigned char r = linear_to_srgb(data[i].x);
+		unsigned char g = linear_to_srgb(data[i].y);
+		unsigned char b = linear_to_srgb(data[i].z);
+		unsigned char a = linear_to_srgb(data[i].w);
+
+		image[i * 4 + 0] = r;
+		image[i * 4 + 1] = g;
+		image[i * 4 + 2] = b;
+		image[i * 4 + 3] = a;
+	}
+
+	stbi_write_png(path.c_str(), width, height, 4, image.data(), 0);
 }
 
 template <>
 void Image<float>::save(const std::string& path) const {
-	stbi_write_hdr(path.c_str(), width, height, 1, this->data.data());
+	std::vector<unsigned char> image = std::vector<unsigned char>(width * height);
+	for (int i = 0; i < width * height; i++) {
+		image[i] = linear_to_srgb(data[i]);
+	}
+
+	stbi_write_png(path.c_str(), width, height, 1, image.data(), 0);
 }
