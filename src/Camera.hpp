@@ -89,6 +89,5 @@ namespace Lykta {
 
 			return glm::vec3(1.f);
 		}
-
 	};
 }

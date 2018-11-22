@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 
 project(lykta CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -10,6 +10,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # Embree
 find_package(embree 3.0 REQUIRED)
 include_directories(${EMBREE_INCLUDE_DIRS})
+
+# Torch
+find_package(Torch)
 
 # GLM
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ext/glm)
@@ -59,4 +62,4 @@ file(GLOB src_files
 
 add_executable(lykta ${src_files} ${tiny_obj_files})
 
-target_link_libraries(lykta nanogui ${NANOGUI_EXTRA_LIBS} ${EMBREE_LIBRARY} OpenMP::OpenMP_CXX)
+target_link_libraries(lykta nanogui ${NANOGUI_EXTRA_LIBS} ${EMBREE_LIBRARY} OpenMP::OpenMP_CXX "${TORCH_LIBRARIES}")
