@@ -8,11 +8,11 @@ glm::vec2 EnvironmentEmitter::dir2uv(const glm::vec3& dir) const {
 	float phi = std::atan2(dir.z, dir.x) + M_PI;
 	phi /= 2 * M_PI;
 	theta /= M_PI;
-	return glm::vec2(phi, theta);
+	return glm::vec2(phi, 1.f - theta);
 }
 
 glm::vec3 EnvironmentEmitter::uv2dir(const glm::vec2& uv) const {
-	float theta = uv.y * M_PI;
+	float theta = (1 - uv.y) * M_PI;
 	float phi = uv.x * 2 * M_PI - M_PI;
 	float y = cos(theta);
 	float xz = sqrtf(1 - y * y);
