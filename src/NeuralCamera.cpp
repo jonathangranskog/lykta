@@ -3,7 +3,10 @@
 
 using namespace Lykta;
 
-NeuralCamera::NeuralCamera(const std::string& filename, glm::ivec2 res, float rr, float fz) {
+// TODO: Implement realistic camera model and then make NeuralCamera inherit from that
+// Also add in training and everything into NeuralCamera...
+
+NeuralCamera::NeuralCamera(const std::string& filename, glm::ivec2 res, float rr, float fz, std::vector<float> avgs, std::vector<float> devs) {
     module = torch::jit::load(filename);
     resolution = res;
     aspect = resolution.x / (float)resolution.y;
@@ -11,6 +14,27 @@ NeuralCamera::NeuralCamera(const std::string& filename, glm::ivec2 res, float rr
     frontZ = fz;
     rearRadius = rr;
     cameraToWorld = lookAt(glm::vec3(0, 0, 2), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+    means = avgs;
+    stds = devs;
+}
+
+// TODO: Better way of doing this........
+void NeuralCamera::normalizeInput(glm::vec2& orig, glm::vec3& dir) const {
+    orig.x = (orig.x - means[0]) / stds[0];
+    orig.y = (orig.y - means[1]) / stds[1];
+    dir.x = (dir.x - means[2]) / stds[2];
+    dir.y = (dir.y - means[3]) / stds[3];
+    dir.z = (dir.z - means[4]) / stds[4];
+}
+
+void NeuralCamera::denormalizeOutput(float& success, glm::vec3& orig, glm::vec3& dir) const {
+    success = (success - means[5]) / stds[5];
+    orig.x = (orig.x - means[6]) / stds[6];
+    orig.y = (orig.y - means[7]) / stds[7];
+    orig.z = (orig.z - means[8]) / stds[8];
+    dir.x = (dir.x - means[9]) / stds[9];
+    dir.y = (dir.y - means[10]) / stds[10];
+    dir.z = (dir.z - means[11]) / stds[11];
 }
 
 glm::vec3 NeuralCamera::createRay(Ray& ray, const glm::vec2& pixel, const glm::vec2& sample) const {
