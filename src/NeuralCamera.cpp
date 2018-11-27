@@ -1,21 +1,44 @@
 #include "NeuralCamera.hpp"
 #include <torch/script.h>
+#include <iostream>
+#include <fstream>
+#include <sstream>
 
 using namespace Lykta;
 
-// TODO: Implement realistic camera model and then make NeuralCamera inherit from that
-// Also add in training and everything into NeuralCamera...
-
-NeuralCamera::NeuralCamera(const std::string& filename, glm::ivec2 res, float rr, float fz, std::vector<float> avgs, std::vector<float> devs) {
-    module = torch::jit::load(filename);
+NeuralCamera::NeuralCamera(const std::string& modelFile, const std::string& dataFile, glm::mat4 camToWorld, glm::ivec2 res) {
+    module = torch::jit::load(modelFile);
     resolution = res;
     aspect = resolution.x / (float)resolution.y;
     sensorSize = glm::vec2(0.024f, 0.024f * 1.f/aspect);
-    frontZ = fz;
-    rearRadius = rr;
     cameraToWorld = lookAt(glm::vec3(0, 0, 2), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-    means = avgs;
-    stds = devs;
+    
+
+    std::ofstream file;
+    file.open(dataFile);
+    if (file.is_open()) {
+        std::string meanLine, stdLine, frontZLine, rearRadiusLine;
+        assert(std::getline(file, meanLine));
+        assert(std::getline(file, stdLine));
+        assert(std::getline(file, frontZLine));
+        assert(std::getline(file, rearRadiusLine));
+        std::stringstream meanss(meanLine);
+        std::string token;
+        while (std::getline(meanss, token, ' ')) {
+            means.push_back(std::stof(token));
+        }
+        std::stringstream stdss(stdLine);
+        while (std::getline(stdss, token, ' ')) {
+            stds.push_back(std::stof(token));
+        }
+        frontZ = std::stof(frontZLine);
+        rearRadius = std::stof(rearRadiusLine);
+    }
+
+    //std::cout << frontZ << " " << rearRadius << std::endl;
+    //for (int i = 0; i < means.size(); i++) {
+    //    std::cout << means[i] << " " << stds[i] << std::endl;
+    //}
 }
 
 // TODO: Better way of doing this........

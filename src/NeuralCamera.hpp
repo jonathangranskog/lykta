@@ -22,7 +22,7 @@ namespace Lykta {
         void denormalizeOutput(float& success, glm::vec3& orig, glm::vec3& dir) const;
 
     public:
-        NeuralCamera(const std::string& filename, glm::ivec2 res, float rr, float fz, std::vector<float> avgs, std::vector<float> devs);
+        NeuralCamera(const std::string& modelFile, const std::string& dataFile, glm::mat4 camToWorld, glm::ivec2 res);
         NeuralCamera() {}
 
         // Might want to create a function to create a batch of rays

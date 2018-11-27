@@ -9,6 +9,7 @@
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/document.h>
 #include "Camera.hpp"
+#include "NeuralCamera.hpp"
 #include "Material.hpp"
 #include "Mesh.hpp"
 #include "Emitter.hpp"
@@ -255,7 +256,7 @@ namespace Lykta {
 			return materialMap;
 		}
 
-		static Camera* readCamera(rapidjson::Document& document) {
+		static Camera* readCamera(rapidjson::Document& document, filesystem::path& scenepath) {
 			if (!document.HasMember("camera")) {
 				Camera* cam = new PerspectiveCamera();
 				return cam;
@@ -266,7 +267,7 @@ namespace Lykta {
 			
 			const std::string type = cameraValue["type"].GetString();
 
-			if (type == "PerspectiveCamera") {
+			if (type == "PerspectiveCamera" || type == "NeuralCamera") {
 				glm::mat4 cameraToWorld = glm::mat4();
 
 				if (cameraValue.HasMember("lookat") && cameraValue.HasMember("center")) {
@@ -280,14 +281,25 @@ namespace Lykta {
 				}
 				
 				glm::ivec2 resolution = readIVector2("resolution", cameraValue);
-				float fov = cameraValue["fov"].GetFloat();
-				float nearClip = cameraValue["nearclip"].GetFloat();
-				float farClip = cameraValue["farclip"].GetFloat();
-				float apertureRadius = (cameraValue.HasMember("apertureRadius")) ? cameraValue["apertureRadius"].GetFloat() : 0.f;
-				float focusDistance = (cameraValue.HasMember("focusDistance")) ? cameraValue["focusDistance"].GetFloat() : 1.f;
 
-				Camera* cam = new PerspectiveCamera(cameraToWorld, resolution, fov, nearClip, farClip, apertureRadius, focusDistance);
-				return cam;
+                if (type == "PerspectiveCamera") {
+                    float fov = cameraValue["fov"].GetFloat();
+                    float nearClip = cameraValue["nearclip"].GetFloat();
+                    float farClip = cameraValue["farclip"].GetFloat();
+                    float apertureRadius = (cameraValue.HasMember("apertureRadius")) ? cameraValue["apertureRadius"].GetFloat() : 0.f;
+                    float focusDistance = (cameraValue.HasMember("focusDistance")) ? cameraValue["focusDistance"].GetFloat() : 1.f;
+                    Camera* cam = new PerspectiveCamera(cameraToWorld, resolution, fov, nearClip, farClip, apertureRadius, focusDistance);
+                    return cam;
+                } else if (type == "NeuralCamera") {
+                    assert(cameraValue.HasMember("model"));
+                    assert(cameraValue.HasMember("data"));
+                    std::string modelFile = cameraValue["model"].GetString();
+                    std::string dataFile = cameraValue["data"].GetString();
+                    assert(getRealPath(modelFile, scenepath));
+                    assert(getRealPath(dataFile, scenepath));
+                    Camera* cam = new NeuralCamera(modelFile, dataFile, cameraToWorld, resolution);
+                    return cam;
+                }
 			}
 
 			Camera* cam = new PerspectiveCamera();
