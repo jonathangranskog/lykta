@@ -6,15 +6,16 @@
 
 using namespace Lykta;
 
-NeuralCamera::NeuralCamera(const std::string& modelFile, const std::string& dataFile, glm::mat4 camToWorld, glm::ivec2 res) {
-    module = torch::jit::load("/Users/jonathan/Documents/lykta/scenes/spheres/petzval.pt");
+NeuralCamera::NeuralCamera(const std::string& modelFile, const std::string& dataFile, glm::mat4 camToWorld, glm::ivec2 res, float shift) {
+    module = torch::jit::load("/Users/jonathan/Documents/NeuroLens/lenses/petzval.pt");
     resolution = res;
     aspect = resolution.x / (float)resolution.y;
     sensorSize = glm::vec2(0.024f, 0.024f * 1.f/aspect);
+    sensorShift = shift;
     cameraToWorld = camToWorld;
     
     std::ifstream file;
-    file.open("/Users/jonathan/Documents/lykta/scenes/spheres/petzval.txt");
+    file.open("/Users/jonathan/Documents/NeuroLens/lenses/petzval.txt");
     if (file.is_open()) {
         std::string meanLine, stdLine, frontZLine, rearRadiusLine;
         std::getline(file, meanLine);
@@ -54,22 +55,32 @@ void NeuralCamera::denormalizeOutput(float& success, glm::vec3& orig, glm::vec3&
     dir.z = dir.z * stds[11] + means[11];
 }
 
+// Project sensor position that is shifted off zero to z=0
+glm::vec2 NeuralCamera::projectToZero(const glm::vec3& sensorPos, const glm::vec3& dir) const {
+    if (sensorPos.z < EPS) return glm::vec2(sensorPos.x, sensorPos.y);
+    float t = -sensorPos.z / dir.z;
+    glm::vec3 proj = sensorPos + t * dir;
+    return glm::vec2(proj.x, proj.y);
+}
+
 glm::vec3 NeuralCamera::createRay(Ray& ray, const glm::vec2& pixel, const glm::vec2& sample) const {
     
     if (module) {
         std::vector<torch::jit::IValue> inputs;
         // Create ray and create input
         glm::vec2 np = glm::vec2(pixel.x / resolution.x, 1.f - pixel.y / resolution.y);
-        glm::vec2 pFilm = np * sensorSize - sensorSize / 2.f;
+        glm::vec3 pFilm = glm::vec3(np * sensorSize - sensorSize / 2.f, sensorShift);
         glm::vec3 pRear = glm::vec3(-rearRadius + sample.x * 2 * rearRadius, -rearRadius + sample.y * 2 * rearRadius, frontZ);
-        glm::vec3 direction = pRear - glm::vec3(pFilm, 0.f);
+        glm::vec3 direction = pRear - pFilm;
         direction = glm::normalize(direction);
-        normalizeInput(pFilm, direction);
+        glm::vec2 zeroProjection = projectToZero(pFilm, direction);
+
+        normalizeInput(zeroProjection, direction);
 
         // Create input tensor
         torch::Tensor input = torch::ones({5});
-        input[0] = pFilm.x;
-        input[1] = pFilm.y;
+        input[0] = zeroProjection.x;
+        input[1] = zeroProjection.y;
         input[2] = direction.x;
         input[3] = direction.y;
         input[4] = direction.z;

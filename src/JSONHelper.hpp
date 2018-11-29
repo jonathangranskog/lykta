@@ -297,7 +297,11 @@ namespace Lykta {
                     std::string dataFile = cameraValue["data"].GetString();
                     assert(getRealPath(modelFile, scenepath));
                     assert(getRealPath(dataFile, scenepath));
-                    Camera* cam = new NeuralCamera(modelFile, dataFile, cameraToWorld, resolution);
+
+                    float sensorShift = 0.f;
+                    if (cameraValue.HasMember("sensorShift")) sensorShift = cameraValue["sensorShift"].GetFloat();
+
+                    Camera* cam = new NeuralCamera(modelFile, dataFile, cameraToWorld, resolution, sensorShift);
                     return cam;
                 }
 			}

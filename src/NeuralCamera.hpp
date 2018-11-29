@@ -13,6 +13,7 @@ namespace Lykta {
         // These should all be fetched from the python script
         float rearRadius;
         float frontZ;
+        float sensorShift;
         // means: [0, 1, 2, 3, 4] for input
         // means: [5, 6, 7, 8, 9, 10, 11] for output
         std::vector<float> means;
@@ -20,9 +21,10 @@ namespace Lykta {
 
         void normalizeInput(glm::vec2& orig, glm::vec3& dir) const;
         void denormalizeOutput(float& success, glm::vec3& orig, glm::vec3& dir) const;
+        glm::vec2 projectToZero(const glm::vec3& sensorPos, const glm::vec3& dir) const;
 
     public:
-        NeuralCamera(const std::string& modelFile, const std::string& dataFile, glm::mat4 camToWorld, glm::ivec2 res);
+        NeuralCamera(const std::string& modelFile, const std::string& dataFile, glm::mat4 camToWorld, glm::ivec2 res, float shift);
         NeuralCamera() {}
 
         // Might want to create a function to create a batch of rays

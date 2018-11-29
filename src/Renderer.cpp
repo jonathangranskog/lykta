@@ -67,5 +67,7 @@ void Renderer::renderFrame() {
 			image[j * resolution.x + i] = result;
 	}
 
+	std::cout << iteration << std::endl;
+
 	iteration++;
 }
