@@ -9,6 +9,7 @@
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/document.h>
 #include "Camera.hpp"
+#include "RealisticCamera.hpp"
 #include "NeuralCamera.hpp"
 #include "Material.hpp"
 #include "Mesh.hpp"
@@ -134,6 +135,36 @@ namespace Lykta {
         }
 
 	public:
+
+        static inline std::vector<LensInterface> readLensFile(const std::string& filename) {
+            std::vector<LensInterface> interfaces;
+
+            std::ifstream in("/Users/jonathan/Documents/lykta/scenes/spheres/petzval.json");
+            std::stringstream sstr;
+            sstr << in.rdbuf();
+
+            rapidjson::Document document;
+            document.Parse(sstr.str().c_str());
+
+            std::cout << document.IsObject() << document.HasMember("interfaces") << std::endl;
+            const rapidjson::Value& arr = document["interfaces"];
+
+            for (rapidjson::SizeType i = 0; i < arr.Size(); i++) {
+                float curvature = arr[i]["curvature"].GetFloat();
+                float thickness = arr[i]["thickness"].GetFloat();
+                float ior = arr[i]["ior"].GetFloat();
+                float aperture = arr[i]["aperture"].GetFloat();
+                LensInterface interface;
+                interface.curvature = 0.001f * curvature;
+                interface.thickness = 0.001f * thickness;
+                interface.eta = ior;
+                interface.aperture = 0.0005f * aperture;
+                interfaces.push_back(interface);
+            }
+
+            return interfaces;
+        }
+
 		// Reads in meshes from JSON document...
 		// Also creates mesh emitters if emission is turned on
 		// Assigns materials too based on name string
@@ -267,7 +298,7 @@ namespace Lykta {
 			
 			const std::string type = cameraValue["type"].GetString();
 
-			if (type == "PerspectiveCamera" || type == "NeuralCamera") {
+			if (type == "PerspectiveCamera" || type == "NeuralCamera" || type == "RealisticCamera") {
 				glm::mat4 cameraToWorld = glm::mat4();
 
 				if (cameraValue.HasMember("lookat") && cameraValue.HasMember("center")) {
@@ -290,19 +321,27 @@ namespace Lykta {
                     float focusDistance = (cameraValue.HasMember("focusDistance")) ? cameraValue["focusDistance"].GetFloat() : 1.f;
                     Camera* cam = new PerspectiveCamera(cameraToWorld, resolution, fov, nearClip, farClip, apertureRadius, focusDistance);
                     return cam;
-                } else if (type == "NeuralCamera") {
-                    assert(cameraValue.HasMember("model"));
-                    assert(cameraValue.HasMember("data"));
-                    std::string modelFile = cameraValue["model"].GetString();
-                    std::string dataFile = cameraValue["data"].GetString();
-                    assert(getRealPath(modelFile, scenepath));
-                    assert(getRealPath(dataFile, scenepath));
-
+                } else if (type == "NeuralCamera" || type == "RealisticCamera") {
                     float sensorShift = 0.f;
                     if (cameraValue.HasMember("sensorShift")) sensorShift = cameraValue["sensorShift"].GetFloat();
 
-                    Camera* cam = new NeuralCamera(modelFile, dataFile, cameraToWorld, resolution, sensorShift);
-                    return cam;
+                    if (type == "NeuralCamera") {
+                        assert(cameraValue.HasMember("model"));
+                        assert(cameraValue.HasMember("data"));
+                        std::string modelFile = cameraValue["model"].GetString();
+                        std::string dataFile = cameraValue["data"].GetString();
+                        assert(getRealPath(modelFile, scenepath));
+                        assert(getRealPath(dataFile, scenepath));
+                        Camera* cam = new NeuralCamera(modelFile, dataFile, cameraToWorld, resolution, sensorShift);
+                        return cam;
+                    } else if (type == "RealisticCamera") {
+                        assert(cameraValue.HasMember("lenses"));
+                        std::string lensFile = cameraValue["lenses"].GetString();
+                        assert(getRealPath(lensFile, scenepath));
+                        std::vector<LensInterface> interfaces = readLensFile(lensFile);
+                        Camera* cam = new RealisticCamera(interfaces, sensorShift, cameraToWorld, resolution);
+                        return cam;
+                    }
                 }
 			}
 

@@ -45,7 +45,7 @@ void Renderer::refresh() {
 void Renderer::renderFrame() {
 	float blend = 1.f / (iteration + 1);
 
-	#pragma omp parallel for schedule(dynamic) 
+	//#pragma omp parallel for schedule(dynamic) 
 	for (int it = 0; it < resolution.y * resolution.x; it++) {
 		int i = it % resolution.x;
 		int j = it / resolution.x;
