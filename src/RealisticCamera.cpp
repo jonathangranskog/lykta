@@ -48,7 +48,7 @@ bool RealisticCamera::intersectElement(int index, float z, const Ray& ray, float
     if (t < 0) return false;
 
     // Compute normal
-    normal = glm::normalize(ray.o + t * ray.d);
+    normal = glm::normalize(o + t * ray.d);
     if (glm::dot(-ray.d, normal) < 0) normal = -normal;
 
     return true;

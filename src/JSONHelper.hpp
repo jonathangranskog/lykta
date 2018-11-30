@@ -146,7 +146,8 @@ namespace Lykta {
             rapidjson::Document document;
             document.Parse(sstr.str().c_str());
 
-            std::cout << document.IsObject() << document.HasMember("interfaces") << std::endl;
+            assert(document.IsObject());
+            assert(document.HasMember("interfaces"));
             const rapidjson::Value& arr = document["interfaces"];
 
             for (rapidjson::SizeType i = 0; i < arr.Size(); i++) {
@@ -323,7 +324,7 @@ namespace Lykta {
                     return cam;
                 } else if (type == "NeuralCamera" || type == "RealisticCamera") {
                     float sensorShift = 0.f;
-                    if (cameraValue.HasMember("sensorShift")) sensorShift = cameraValue["sensorShift"].GetFloat();
+                    if (cameraValue.HasMember("sensorShift")) sensorShift = cameraValue["sensorShift"].GetFloat() * 0.001f;
 
                     if (type == "NeuralCamera") {
                         assert(cameraValue.HasMember("model"));
