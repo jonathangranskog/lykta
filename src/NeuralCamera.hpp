@@ -32,6 +32,7 @@ namespace Lykta {
         };
 
         std::shared_ptr<torch::jit::script::Module> module = nullptr;
+        std::shared_ptr<Net> network = nullptr;
         // These should all be fetched from the python script
         float rearRadius;
         // means: [0, 1, 2, 3, 4] for input

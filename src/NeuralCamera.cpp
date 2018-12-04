@@ -38,12 +38,12 @@ NeuralCamera::NeuralCamera(const std::string& modelFile, const std::string& data
 }
 
 NeuralCamera::NeuralCamera(std::vector<LensInterface> elements,  float shift, glm::mat4 camToWorld, glm::ivec2 res) {
-    sensorSize = glm::vec2(0.024f, 0.024f * 1.f/aspect);
     sensorShift = shift;
     resolution = res;
     aspect = resolution.x / (float)resolution.y;
     cameraToWorld = camToWorld;
-
+    sensorSize = glm::vec2(0.024f, 0.024f * 1.f/aspect);
+    
     interfaces = elements;
 
     frontZ = 0.f;
@@ -56,7 +56,7 @@ NeuralCamera::NeuralCamera(std::vector<LensInterface> elements,  float shift, gl
     means = std::vector<float>(12, 0.f);
     stds = std::vector<float>(12, 1.f);
 
-    train(5000, 512);
+    train(2500, 512);
 }
 
 // TODO: Better way of doing this........
@@ -98,7 +98,7 @@ glm::vec2 NeuralCamera::projectToZero(const glm::vec3& sensorPos, const glm::vec
 
 glm::vec3 NeuralCamera::createRay(Ray& ray, const glm::vec2& pixel, const glm::vec2& sample) const {
     
-    if (module) {
+    if (module || network) {
         std::vector<torch::jit::IValue> inputs;
         // Create ray and create input
         glm::vec2 np = glm::vec2(pixel.x / resolution.x, 1.f - pixel.y / resolution.y);
@@ -120,8 +120,14 @@ glm::vec3 NeuralCamera::createRay(Ray& ray, const glm::vec2& pixel, const glm::v
         inputs.push_back(input);
 
         // Run through neural network
-        at::Tensor output = module->forward(inputs).toTensor();
-        output = output.to(at::kFloat);
+        at::Tensor output;
+        if (module) {
+            output = module->forward(inputs).toTensor();
+            output = output.to(at::kFloat);
+        } else if (network) {
+            output = network->forward(input);
+            output = output.to(at::kFloat);
+        }
         float* data = output.data<float>();
         
         // Extract output [success, orig.x, orig.y, orig.z, dir.x, dir.y, dir.z]
@@ -205,10 +211,6 @@ void NeuralCamera::calculateMeanAndStd() {
         means[i + 5] = omptr[i];
         stds[i + 5] = osptr[i];
     }
-
-    for (int i = 0; i < 12; i++) {
-        std::cout << means[i] << " " << stds[i] << std::endl;
-    }
 }
 
 // This should create two tensors input and output of size batchSize
@@ -260,8 +262,8 @@ std::pair<torch::Tensor, torch::Tensor> NeuralCamera::generateBatch(int batchSiz
 }
 
 void NeuralCamera::train(int epochs, int batchSize) {
-    Net net;
-    torch::optim::SGD optimizer(net.parameters(), 0.01);
+    network = std::shared_ptr<Net>(new Net());
+    torch::optim::SGD optimizer(network->parameters(), 0.01);
 
     // Approximate means and stds with n samples
     calculateMeanAndStd();
@@ -270,7 +272,7 @@ void NeuralCamera::train(int epochs, int batchSize) {
     for (size_t epoch = 1; epoch <= epochs; ++epoch) {
         optimizer.zero_grad();
         std::pair<torch::Tensor, torch::Tensor> batch = generateBatch(batchSize);
-        auto prediction = net.forward(batch.first);
+        auto prediction = network->forward(batch.first);
         auto loss = torch::mse_loss(prediction, batch.second);
         loss.backward();
         optimizer.step();
