@@ -327,14 +327,24 @@ namespace Lykta {
                     if (cameraValue.HasMember("sensorShift")) sensorShift = cameraValue["sensorShift"].GetFloat() * 0.001f;
 
                     if (type == "NeuralCamera") {
-                        assert(cameraValue.HasMember("model"));
-                        assert(cameraValue.HasMember("data"));
-                        std::string modelFile = cameraValue["model"].GetString();
-                        std::string dataFile = cameraValue["data"].GetString();
-                        assert(getRealPath(modelFile, scenepath));
-                        assert(getRealPath(dataFile, scenepath));
-                        Camera* cam = new NeuralCamera(modelFile, dataFile, cameraToWorld, resolution, sensorShift);
-                        return cam;
+                        if (cameraValue.HasMember("lenses")) {
+                            assert(cameraValue.HasMember("lenses"));
+                            std::string lensFile = cameraValue["lenses"].GetString();
+                            assert(getRealPath(lensFile, scenepath));
+                            std::vector<LensInterface> interfaces = readLensFile(lensFile);
+                            Camera* cam = new NeuralCamera(interfaces, sensorShift, cameraToWorld, resolution);
+                            return cam;
+                        } else {
+                            assert(cameraValue.HasMember("model"));
+                            assert(cameraValue.HasMember("data"));
+                            std::string modelFile = cameraValue["model"].GetString();
+                            std::string dataFile = cameraValue["data"].GetString();
+                            assert(getRealPath(modelFile, scenepath));
+                            assert(getRealPath(dataFile, scenepath));
+                            Camera* cam = new NeuralCamera(modelFile, dataFile, cameraToWorld, resolution, sensorShift);
+                            return cam;
+                        }
+                        
                     } else if (type == "RealisticCamera") {
                         assert(cameraValue.HasMember("lenses"));
                         std::string lensFile = cameraValue["lenses"].GetString();

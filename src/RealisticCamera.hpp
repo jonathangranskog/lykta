@@ -14,7 +14,7 @@ namespace Lykta {
     };
 
     class RealisticCamera : public Camera {
-    private:
+    protected:
         std::vector<LensInterface> interfaces;
         glm::vec2 sensorSize;
         float frontZ;
@@ -28,6 +28,7 @@ namespace Lykta {
 
     public:
         RealisticCamera(std::vector<LensInterface> elements, float shift, glm::mat4 camToWorld, glm::ivec2 res);
+        RealisticCamera() {}
         ~RealisticCamera() {}
 
         bool trace(const Ray& in, Ray& out) const;
