@@ -7,36 +7,6 @@
 
 using namespace Lykta;
 
-NeuralCamera::NeuralCamera(const std::string& modelFile, const std::string& dataFile, glm::mat4 camToWorld, glm::ivec2 res, float shift) {
-    module = torch::jit::load("/Users/jonathan/Documents/NeuroLens/lenses/petzval.pt");
-    resolution = res;
-    aspect = resolution.x / (float)resolution.y;
-    sensorSize = glm::vec2(0.024f, 0.024f * 1.f/aspect);
-    sensorShift = shift;
-    cameraToWorld = camToWorld;
-    
-    std::ifstream file;
-    file.open("/Users/jonathan/Documents/NeuroLens/lenses/petzval.txt");
-    if (file.is_open()) {
-        std::string meanLine, stdLine, frontZLine, rearRadiusLine;
-        std::getline(file, meanLine);
-        std::getline(file, stdLine);
-        std::getline(file, frontZLine);
-        std::getline(file, rearRadiusLine);
-        std::stringstream meanss(meanLine);
-        std::string token;
-        while (std::getline(meanss, token, ' ')) {
-            means.push_back(std::stof(token));
-        }
-        std::stringstream stdss(stdLine);
-        while (std::getline(stdss, token, ' ')) {
-            stds.push_back(std::stof(token));
-        }
-        frontZ = std::stof(frontZLine);
-        rearRadius = std::stof(rearRadiusLine);
-    }
-}
-
 NeuralCamera::NeuralCamera(std::vector<LensInterface> elements,  float shift, glm::mat4 camToWorld, glm::ivec2 res) {
     sensorShift = shift;
     resolution = res;
@@ -56,7 +26,7 @@ NeuralCamera::NeuralCamera(std::vector<LensInterface> elements,  float shift, gl
     means = std::vector<float>(12, 0.f);
     stds = std::vector<float>(12, 1.f);
 
-    train(5000, 512);
+    train(2500, 512);
 }
 
 // TODO: Better way of doing this........
@@ -155,6 +125,7 @@ glm::vec3 NeuralCamera::createRay(Ray& ray, const glm::vec2& pixel, const glm::v
     return glm::vec3(0.f);  
 }
 
+// TODO: Generate a block of input values and evaluate simultaneously
 void NeuralCamera::createRayBatch(std::vector<Ray>& rays, std::vector<glm::vec3>& colors, std::vector<RandomSampler>& samplers) const {
     rays.assign(resolution.x * resolution.y, Ray());
     colors.assign(resolution.x * resolution.y, glm::vec3(0.f));

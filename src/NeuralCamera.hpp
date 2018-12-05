@@ -49,7 +49,6 @@ namespace Lykta {
         std::pair<torch::Tensor, torch::Tensor> generateBatch(int batchSize);
 
     public:
-        NeuralCamera(const std::string& modelFile, const std::string& dataFile, glm::mat4 camToWorld, glm::ivec2 res, float shift);
         NeuralCamera(std::vector<LensInterface> elements, float shift, glm::mat4 camToWorld, glm::ivec2 res);
         NeuralCamera() {}
         ~NeuralCamera() {}
