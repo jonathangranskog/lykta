@@ -26,7 +26,7 @@ NeuralCamera::NeuralCamera(std::vector<LensInterface> elements,  float shift, gl
     means = std::vector<float>(12, 0.f);
     stds = std::vector<float>(12, 1.f);
 
-    train(1000, 512);
+    train(1000, 512, 5);
 }
 
 // TODO: Better way of doing this........
@@ -63,7 +63,7 @@ void NeuralCamera::createRayBatch(std::vector<Ray>& rays, std::vector<glm::vec3>
     rays.assign(resolution.x * resolution.y, Ray());
     colors.assign(resolution.x * resolution.y, glm::vec3(0.f));
 
-    if (!network) return;
+    if (networks.size() == 0) return;
 
     // Create input
     torch::Tensor input = torch::ones({resolution.x * resolution.y, 5});
@@ -94,9 +94,15 @@ void NeuralCamera::createRayBatch(std::vector<Ray>& rays, std::vector<glm::vec3>
         input[it][4] = direction.z;
     }
 
-    // Evaluate network
-    at::Tensor output = network->forward(input);
-    output = output.to(at::kFloat);
+    // Evaluate networks
+    at::Tensor output = torch::zeros({resolution.x * resolution.y, 7});
+    for (int i = 0; i < networks.size(); i++) {
+        at::Tensor result = networks[i]->forward(input).to(at::kFloat);
+        output += result;
+    }
+    at::Tensor size = torch::zeros({1});
+    size[0] = (float)networks.size();
+    output /= size;
     float* data = output.data<float>();
 
     // Set outgoing rays
@@ -221,23 +227,29 @@ std::pair<torch::Tensor, torch::Tensor> NeuralCamera::generateBatch(int batchSiz
     return std::make_pair(input, output);
 }
 
-void NeuralCamera::train(int epochs, int batchSize) {
-    network = std::shared_ptr<Net>(new Net());
-    torch::optim::Adam optimizer(network->parameters(), 0.01f);
-
-    // Approximate means and stds with n samples
+void NeuralCamera::train(int epochs, int batchSize, int numNetworks) {
+    
+    // Approximate means and stds to train on 0 mean and unit std.
     calculateMeanAndStd();
 
-    // Train
-    for (size_t epoch = 1; epoch <= epochs; ++epoch) {
-        optimizer.zero_grad();
-        std::pair<torch::Tensor, torch::Tensor> batch = generateBatch(batchSize);
-        auto prediction = network->forward(batch.first);
-        auto loss = torch::mse_loss(prediction, batch.second);
-        loss.backward();
-        optimizer.step();
-        std::cout << "Training NeuralCamera epoch " << epoch << ": " << loss << std::endl;
-    }
+    // Train #numNetworks networks
+    for (int i = 0; i < numNetworks; i++) {
+        // Create network and optimizer
+        NetPtr network = NetPtr(new Net());
+        torch::optim::Adam optimizer(network->parameters(), 0.01f);
 
-    //torch::save(net, "net.pt");
+        // Train
+        for (size_t epoch = 1; epoch <= epochs; ++epoch) {
+            optimizer.zero_grad();
+            std::pair<torch::Tensor, torch::Tensor> batch = generateBatch(batchSize);
+            auto prediction = network->forward(batch.first);
+            auto loss = torch::mse_loss(prediction, batch.second);
+            loss.backward();
+            optimizer.step();
+            std::cout << "Training NeuralCamera epoch " << epoch << ": " << loss << std::endl;
+        }
+
+        // Add to vector of networks
+        networks.push_back(network);
+    }
 }

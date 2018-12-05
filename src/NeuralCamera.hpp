@@ -31,9 +31,11 @@ namespace Lykta {
             torch::nn::Linear fc4{nullptr};            
         };
 
-        std::shared_ptr<Net> network = nullptr;
-        // These should all be fetched from the python script
+        typedef std::shared_ptr<Net> NetPtr;
+
+        std::vector<NetPtr> networks = std::vector<NetPtr>();
         float rearRadius;
+        
         // means: [0, 1, 2, 3, 4] for input
         // means: [5, 6, 7, 8, 9, 10, 11] for output
         std::vector<float> means;
@@ -43,7 +45,7 @@ namespace Lykta {
         void normalizeOutput(float& success, glm::vec3& orig, glm::vec3& dir) const;
         void denormalizeOutput(float& success, glm::vec3& orig, glm::vec3& dir) const;
         void calculateMeanAndStd();
-        void train(int epochs, int batchSize);
+        void train(int epochs, int batchSize, int numNetworks = 1);
         std::pair<torch::Tensor, torch::Tensor> generateBatch(int batchSize);
 
     public:
