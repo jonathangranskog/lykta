@@ -45,29 +45,28 @@ void Renderer::refresh() {
 void Renderer::renderFrame() {
 	float blend = 1.f / (iteration + 1);
 
-	//#pragma omp parallel for schedule(dynamic) 
+	// Create a batch of camera rays
+	std::vector<Ray> cameraRays;
+	std::vector<glm::vec3> cameraColors;
+	scene->getCamera()->createRayBatch(cameraRays, cameraColors, samplers);
+
+	// Integrate each pixel
+	#pragma omp parallel for schedule(dynamic) 
 	for (int it = 0; it < resolution.y * resolution.x; it++) {
 		int i = it % resolution.x;
 		int j = it / resolution.x;
 		int thread = omp_get_thread_num();
+		int index = j * resolution.x + i;
 		RandomSampler* sampler = &samplers[thread];
-		// First, get pixel that is being rendered
-		glm::vec2 imageSample = glm::vec2(i, j) + sampler->next2D();
-
-		// Second, create ray with camera
-		Ray ray;
-		glm::vec3 W = scene->getCamera()->createRay(ray, imageSample, sampler->next2D());
 
 		// Third integrate
-		glm::vec3 result = W * integrator->evaluate(ray, scene, sampler);
+		glm::vec3 result = cameraColors[index] * integrator->evaluate(cameraRays[index], scene, sampler);
 
 		if (iteration > 0)
-			image[j * resolution.x + i] = (1 - blend) * image[j * resolution.x + i] + blend * result;
+			image[index] = (1 - blend) * image[index] + blend * result;
 		else
-			image[j * resolution.x + i] = result;
+			image[index] = result;
 	}
-
-	std::cout << iteration << std::endl;
 
 	iteration++;
 }

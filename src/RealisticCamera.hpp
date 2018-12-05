@@ -43,6 +43,7 @@ namespace Lykta {
 
         virtual glm::vec3 createRay(Ray& ray, const glm::vec2& pixel, const glm::vec2& sample) const;
 
+        virtual void createRayBatch(std::vector<Ray>& rays, std::vector<glm::vec3>& colors, std::vector<RandomSampler>& samplers) const;
     };
 
 }

@@ -121,3 +121,19 @@ glm::vec3 RealisticCamera::createRay(Ray& ray, const glm::vec2& pixel, const glm
     }
 }
 
+void RealisticCamera::createRayBatch(std::vector<Ray>& rays, std::vector<glm::vec3>& colors, std::vector<RandomSampler>& samplers) const {
+    rays.assign(resolution.x * resolution.y, Ray());
+    colors.assign(resolution.x * resolution.y, glm::vec3(0.f));
+
+    #pragma omp parallel for
+    for (int it = 0; it < resolution.x * resolution.y; it++) {
+        int i = it % resolution.x;
+        int j = it / resolution.x;
+        int thread = omp_get_thread_num();
+        RandomSampler* sampler = &samplers[thread];
+
+        glm::vec2 pixel = glm::vec2(i, j) + sampler->next2D();
+        glm::vec2 sample = sampler->next2D();
+        colors[j * resolution.x + i] = createRay(rays[j * resolution.x + i], pixel, sample);
+    }
+}

@@ -1,11 +1,14 @@
 #pragma once
 
 #include "common.h"
+#include "random.h"
+#include "omp.h"
 #include "Sampling.hpp"
 #include <glm/vec2.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <cmath>
+#include <vector>
 
 namespace Lykta {
 	class Camera {
@@ -31,7 +34,11 @@ namespace Lykta {
 	public:
 		virtual glm::vec3 createRay(Ray& ray, const glm::vec2& pixel, const glm::vec2& sample) const = 0;
 
+		virtual void createRayBatch(std::vector<Ray>& rays, std::vector<glm::vec3>& colors, std::vector<RandomSampler>& samplers) const = 0;
+
 		virtual const glm::vec2 getResolution() const { return resolution; }
+
+		virtual void postprocess(int iteration) {};
 	};
 
 	class PerspectiveCamera : public Camera {
@@ -88,6 +95,23 @@ namespace Lykta {
 			ray.t = glm::vec2(nearClip, farClip);
 
 			return glm::vec3(1.f);
+		}
+
+		virtual void createRayBatch(std::vector<Ray>& rays, std::vector<glm::vec3>& colors, std::vector<RandomSampler>& samplers) const {
+			rays.assign(resolution.x * resolution.y, Ray());
+			colors.assign(resolution.x * resolution.y, glm::vec3(0.f));
+
+			#pragma omp parallel for
+			for (int it = 0; it < resolution.x * resolution.y; it++) {
+				int i = it % resolution.x;
+				int j = it / resolution.x;
+				int thread = omp_get_thread_num();
+				RandomSampler* sampler = &samplers[thread];
+
+				glm::vec2 pixel = glm::vec2(i, j) + sampler->next2D();
+				glm::vec2 sample = sampler->next2D();
+				colors[j * resolution.x + i] = createRay(rays[j * resolution.x + i], pixel, sample);
+			}
 		}
 	};
 }
