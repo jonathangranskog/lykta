@@ -1,0 +1,70 @@
+{
+    "interfaces" : [
+        {
+            "curvature" : 121.110,
+            "thickness" : 10.38,
+            "ior" : 1.517,
+            "aperture" : 43.2
+        },
+        {
+            "curvature" : 1600.0,
+            "thickness" : 0.86,
+            "ior" : 0.0,
+            "aperture" : 43.2
+        },
+        {
+            "curvature" : 81.32,
+            "thickness" : 19.9,
+            "ior" : 1.517,
+            "aperture" : 41.4
+        },
+        {
+            "curvature" : -138.43,
+            "thickness" : 2.08,
+            "ior" : 1.626,
+            "aperture" : 41.4
+        },
+        {
+            "curvature" : 138.43,
+            "thickness" : 32.15,
+            "ior" : 0.0,
+            "aperture" : 41.4
+        },
+        {
+            "curvature" : 0.0,
+            "thickness" : 31.0,
+            "ior" : 0.0,
+            "aperture" : 26.9
+        },
+        {
+            "curvature" : 49.31,
+            "thickness" : 14.7,
+            "ior" : 1.517,
+            "aperture" : 26.0
+        },
+        {
+            "curvature" : -60.56,
+            "thickness" : 5.54,
+            "ior" : 1.626,
+            "aperture" : 26.0
+        },
+        {
+            "curvature" : -332.23,
+            "thickness" : 28.3,
+            "ior" : 0.0,
+            "aperture" : 26.0
+        },
+        {
+            "curvature" : -40.66,
+            "thickness" : 1.73,
+            "ior" : 1.65,
+            "aperture" : 26.0
+        },
+        {
+            "curvature" : 288.1,
+            "thickness" : 1.665,
+            "ior" : 0.0,
+            "aperture" : 26.0
+        }
+    ]
+}

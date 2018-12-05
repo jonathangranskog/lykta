@@ -1,0 +1,47 @@
+{
+  "camera" : {
+    "type": "NeuralCamera",
+    "resolution" :  [800, 800],
+    "center": [ 0.0, 0.0, 10.55 ],
+    "lookat": [0.0, 0.0, 0.0],
+    "lenses" : "petzval.json",
+    "sensorShift" : 9.9
+  },
+  "objects": [
+    {
+
+      "file": "spheres.obj",
+      "material": "specular"
+    },
+    {
+
+      "file": "emitters.obj",
+      "material": "emitter"
+    },
+    {
+      "file": "box.obj",
+      "material" : "white"
+    }
+  ],
+  "materials": [
+    {
+      "name": "white",
+      "diffuseColor": [1.0, 1.0, 1.0],
+      "emission" : [0.0, 0.0, 0.0]
+    },
+    {
+      "name": "specular",
+      "diffuseColor": [1.0, 0.0, 0.0],
+      "emission" : [0.0, 0.0, 0.0],
+      "specular" : 0.4,
+      "specularTint" : 0.0,
+      "roughness" : 0.3,
+      "ior" : 8.0
+    },
+    {
+      "name": "emitter",
+      "diffuseColor": [ 0.0, 0.0, 0.0 ],
+      "emissiveColor" :  [2.5, 2.5, 2.5]
+    }
+  ]
+}
