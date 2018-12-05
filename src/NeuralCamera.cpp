@@ -56,7 +56,7 @@ NeuralCamera::NeuralCamera(std::vector<LensInterface> elements,  float shift, gl
     means = std::vector<float>(12, 0.f);
     stds = std::vector<float>(12, 1.f);
 
-    train(2500, 512);
+    train(5000, 512);
 }
 
 // TODO: Better way of doing this........
@@ -106,14 +106,14 @@ glm::vec3 NeuralCamera::createRay(Ray& ray, const glm::vec2& pixel, const glm::v
         glm::vec3 pRear = glm::vec3(-rearRadius + sample.x * 2 * rearRadius, -rearRadius + sample.y * 2 * rearRadius, frontZ);
         glm::vec3 direction = pRear - pFilm;
         direction = glm::normalize(direction);
-        glm::vec2 zeroProjection = projectToZero(pFilm, direction);
+        glm::vec2 sensorPos = (module) ? projectToZero(pFilm, direction) : glm::vec2(pFilm.x, pFilm.y);
 
-        normalizeInput(zeroProjection, direction);
+        normalizeInput(sensorPos, direction);
 
         // Create input tensor
         torch::Tensor input = torch::ones({5});
-        input[0] = zeroProjection.x;
-        input[1] = zeroProjection.y;
+        input[0] = sensorPos.x;
+        input[1] = sensorPos.y;
         input[2] = direction.x;
         input[3] = direction.y;
         input[4] = direction.z;
@@ -157,14 +157,14 @@ glm::vec3 NeuralCamera::createRay(Ray& ray, const glm::vec2& pixel, const glm::v
 
 void NeuralCamera::calculateMeanAndStd() {
     std::cout << "Approximating means and stds..." << std::endl;
-    int n = 10000;
+    int n = 100000;
     
     at::Tensor input = at::ones({n, 5});
     at::Tensor output = at::ones({n, 7});
     at::Tensor randnums = at::rand({n * 4});
     float* rnd = randnums.data<float>();
 
-    //#pragma omp parallel for
+    #pragma omp parallel for
     for (int i = 0; i < n; i++) {
         // Generate rays
         float resx = rnd[i * 4] * resolution.x;
@@ -263,7 +263,7 @@ std::pair<torch::Tensor, torch::Tensor> NeuralCamera::generateBatch(int batchSiz
 
 void NeuralCamera::train(int epochs, int batchSize) {
     network = std::shared_ptr<Net>(new Net());
-    torch::optim::SGD optimizer(network->parameters(), 0.01);
+    torch::optim::Adam optimizer(network->parameters(), 0.01f);
 
     // Approximate means and stds with n samples
     calculateMeanAndStd();
