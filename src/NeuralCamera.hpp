@@ -31,7 +31,6 @@ namespace Lykta {
             torch::nn::Linear fc4{nullptr};            
         };
 
-        std::shared_ptr<torch::jit::script::Module> module = nullptr;
         std::shared_ptr<Net> network = nullptr;
         // These should all be fetched from the python script
         float rearRadius;
@@ -43,7 +42,6 @@ namespace Lykta {
         void normalizeInput(glm::vec2& orig, glm::vec3& dir) const;
         void normalizeOutput(float& success, glm::vec3& orig, glm::vec3& dir) const;
         void denormalizeOutput(float& success, glm::vec3& orig, glm::vec3& dir) const;
-        glm::vec2 projectToZero(const glm::vec3& sensorPos, const glm::vec3& dir) const;
         void calculateMeanAndStd();
         void train(int epochs, int batchSize);
         std::pair<torch::Tensor, torch::Tensor> generateBatch(int batchSize);
@@ -53,8 +51,7 @@ namespace Lykta {
         NeuralCamera() {}
         ~NeuralCamera() {}
 
-        virtual glm::vec3 createRay(Ray& ray, const glm::vec2& pixel, const glm::vec2& sample) const;
-
+        // Only replace ray batch function of realistic camera
         virtual void createRayBatch(std::vector<Ray>& rays, std::vector<glm::vec3>& colors, std::vector<RandomSampler>& samplers) const;
     };
 }

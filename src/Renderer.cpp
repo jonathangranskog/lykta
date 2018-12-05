@@ -56,17 +56,16 @@ void Renderer::renderFrame() {
 		int i = it % resolution.x;
 		int j = it / resolution.x;
 		int thread = omp_get_thread_num();
-		int index = j * resolution.x + i;
 		RandomSampler* sampler = &samplers[thread];
 
 		// Third integrate
-		glm::vec3 result = cameraColors[index] * integrator->evaluate(cameraRays[index], scene, sampler);
+		glm::vec3 result = cameraColors[it] * integrator->evaluate(cameraRays[it], scene, sampler);
 
 		if (iteration > 0)
-			image[index] = (1 - blend) * image[index] + blend * result;
+			image[it] = (1 - blend) * image[it] + blend * result;
 		else
-			image[index] = result;
+			image[it] = result;
 	}
-
+	std::cout << iteration << std::endl;
 	iteration++;
 }

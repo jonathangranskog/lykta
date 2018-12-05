@@ -26,7 +26,7 @@ NeuralCamera::NeuralCamera(std::vector<LensInterface> elements,  float shift, gl
     means = std::vector<float>(12, 0.f);
     stds = std::vector<float>(12, 1.f);
 
-    train(2500, 512);
+    train(1000, 512);
 }
 
 // TODO: Better way of doing this........
@@ -58,77 +58,15 @@ void NeuralCamera::denormalizeOutput(float& success, glm::vec3& orig, glm::vec3&
     dir.z = dir.z * stds[11] + means[11];
 }
 
-// Project sensor position that is shifted off zero to z=0
-glm::vec2 NeuralCamera::projectToZero(const glm::vec3& sensorPos, const glm::vec3& dir) const {
-    if (sensorPos.z < EPS) return glm::vec2(sensorPos.x, sensorPos.y);
-    float t = -sensorPos.z / dir.z;
-    glm::vec3 proj = sensorPos + t * dir;
-    return glm::vec2(proj.x, proj.y);
-}
-
-glm::vec3 NeuralCamera::createRay(Ray& ray, const glm::vec2& pixel, const glm::vec2& sample) const {
-    
-    if (module || network) {
-        std::vector<torch::jit::IValue> inputs;
-        // Create ray and create input
-        glm::vec2 np = glm::vec2(pixel.x / resolution.x, 1.f - pixel.y / resolution.y);
-        glm::vec3 pFilm = glm::vec3(np * sensorSize - sensorSize / 2.f, sensorShift);
-        glm::vec3 pRear = glm::vec3(-rearRadius + sample.x * 2 * rearRadius, -rearRadius + sample.y * 2 * rearRadius, frontZ);
-        glm::vec3 direction = pRear - pFilm;
-        direction = glm::normalize(direction);
-        glm::vec2 sensorPos = (module) ? projectToZero(pFilm, direction) : glm::vec2(pFilm.x, pFilm.y);
-
-        normalizeInput(sensorPos, direction);
-
-        // Create input tensor
-        torch::Tensor input = torch::ones({5});
-        input[0] = sensorPos.x;
-        input[1] = sensorPos.y;
-        input[2] = direction.x;
-        input[3] = direction.y;
-        input[4] = direction.z;
-        inputs.push_back(input);
-
-        // Run through neural network
-        at::Tensor output;
-        if (module) {
-            output = module->forward(inputs).toTensor();
-            output = output.to(at::kFloat);
-        } else if (network) {
-            output = network->forward(input);
-            output = output.to(at::kFloat);
-        }
-        float* data = output.data<float>();
-        
-        // Extract output [success, orig.x, orig.y, orig.z, dir.x, dir.y, dir.z]
-        float success = data[0];
-        glm::vec3 pos = glm::vec3(data[1], data[2], data[3]);
-        glm::vec3 dir = glm::vec3(data[4], data[5], data[6]);
-
-        denormalizeOutput(success, pos, dir);
-
-        bool passed = success > 0.5f;
-
-        if (passed) {
-            dir = glm::normalize(dir);
-            ray.o = glm::vec3(cameraToWorld * glm::vec4(pos, 1));
-            ray.d = glm::vec3(cameraToWorld * glm::vec4(dir, 0));
-            ray.t = glm::vec2(EPS, INFINITY);
-            return glm::vec3(1.f);
-        }
-    }
-
-    // Failed -- return black and invalid ray
-    ray.o = glm::vec3(0.f);
-    ray.d = glm::vec3(0, 0, 1);
-    ray.t = glm::vec2(0.f);
-    return glm::vec3(0.f);  
-}
-
 // TODO: Generate a block of input values and evaluate simultaneously
 void NeuralCamera::createRayBatch(std::vector<Ray>& rays, std::vector<glm::vec3>& colors, std::vector<RandomSampler>& samplers) const {
     rays.assign(resolution.x * resolution.y, Ray());
     colors.assign(resolution.x * resolution.y, glm::vec3(0.f));
+
+    if (!network) return;
+
+    // Create input
+    torch::Tensor input = torch::ones({resolution.x * resolution.y, 5});
 
     #pragma omp parallel for
     for (int it = 0; it < resolution.x * resolution.y; it++) {
@@ -139,7 +77,41 @@ void NeuralCamera::createRayBatch(std::vector<Ray>& rays, std::vector<glm::vec3>
 
         glm::vec2 pixel = glm::vec2(i, j) + sampler->next2D();
         glm::vec2 sample = sampler->next2D();
-        colors[j * resolution.x + i] = createRay(rays[j * resolution.x + i], pixel, sample);
+
+        // Create ray and create input
+        glm::vec2 np = glm::vec2(pixel.x / resolution.x, 1.f - pixel.y / resolution.y);
+        glm::vec3 pFilm = glm::vec3(np * sensorSize - sensorSize / 2.f, sensorShift);
+        glm::vec3 pRear = glm::vec3(-rearRadius + sample.x * 2 * rearRadius, -rearRadius + sample.y * 2 * rearRadius, frontZ);
+        glm::vec3 direction = pRear - pFilm;
+        direction = glm::normalize(direction);
+        glm::vec2 sensorPos = glm::vec2(pFilm.x, pFilm.y);
+        normalizeInput(sensorPos, direction);
+
+        input[it][0] = sensorPos.x;
+        input[it][1] = sensorPos.y;
+        input[it][2] = direction.x;
+        input[it][3] = direction.y;
+        input[it][4] = direction.z;
+    }
+
+    // Evaluate network
+    at::Tensor output = network->forward(input);
+    output = output.to(at::kFloat);
+    float* data = output.data<float>();
+
+    // Set outgoing rays
+    //#pragma omp parallel for
+    for (int it = 0; it < resolution.x * resolution.y; it++) {
+        float success = data[it * 7];
+        glm::vec3 orig = glm::vec3(data[it * 7 + 1], data[it * 7 + 2], data[it * 7 + 3]);
+        glm::vec3 dir = glm::vec3(data[it * 7 + 4], data[it * 7 + 5], data[it * 7 + 6]);
+        denormalizeOutput(success, orig, dir);
+        bool passed = success > 0.5f;
+        dir = glm::normalize(dir);
+        rays[it].o = glm::vec3(cameraToWorld * glm::vec4(orig, 1));
+        rays[it].d = glm::vec3(cameraToWorld * glm::vec4(dir, 0));
+        rays[it].t = glm::vec2(EPS, INFINITY);
+        colors[it] = glm::vec3((float)passed);
     }
 }
 

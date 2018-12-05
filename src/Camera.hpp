@@ -47,7 +47,7 @@ namespace Lykta {
 
 				glm::vec2 pixel = glm::vec2(i, j) + sampler->next2D();
 				glm::vec2 sample = sampler->next2D();
-				colors[j * resolution.x + i] = createRay(rays[j * resolution.x + i], pixel, sample);
+				colors[it] = createRay(rays[it], pixel, sample);
 			}
 		}
 
