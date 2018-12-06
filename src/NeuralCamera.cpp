@@ -26,7 +26,7 @@ NeuralCamera::NeuralCamera(std::vector<LensInterface> elements,  float shift, gl
     means = std::vector<float>(12, 0.f);
     stds = std::vector<float>(12, 1.f);
 
-    train(1000, 512, 5);
+    train(8000, 512, 3);
 }
 
 // TODO: Better way of doing this........

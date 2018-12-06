@@ -18,9 +18,9 @@ namespace Lykta {
             }
 
             torch::Tensor forward(torch::Tensor x) {
-                x = torch::tanh(fc1->forward(x));
-                x = torch::tanh(fc2->forward(x));
-                x = torch::tanh(fc3->forward(x));
+                x = torch::relu(fc1->forward(x));
+                x = torch::relu(fc2->forward(x));
+                x = torch::relu(fc3->forward(x));
                 x = fc4->forward(x);
                 return x;
             }
