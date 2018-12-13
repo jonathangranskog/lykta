@@ -1,9 +1,11 @@
 #include <random>
 #include <iostream>
 #include "Renderer.hpp"
+#include "RandomPool.hpp"
 #include "omp.h"
 
 using namespace Lykta;
+std::vector<RandomSampler> RND::samplers;
 
 Renderer::Renderer() {
 	resolution = glm::ivec2(800, 800);
@@ -33,13 +35,7 @@ void Renderer::refresh() {
 	}
 
 	integrator->preprocess(scene);
-
-	// Init samplers
-	samplers.clear();
-	samplers = std::vector<RandomSampler>(omp_get_max_threads());
-	for (int i = 0; i < omp_get_max_threads(); i++) {
-		samplers[i].seed(i);
-	}
+	RND::init();
 }
 
 void Renderer::renderFrame() {
@@ -50,16 +46,15 @@ void Renderer::renderFrame() {
 		int i = it % resolution.x;
 		int j = it / resolution.x;
 		int thread = omp_get_thread_num();
-		RandomSampler* sampler = &samplers[thread];
 		// First, get pixel that is being rendered
-		glm::vec2 imageSample = glm::vec2(i, j) + sampler->next2D();
+		glm::vec2 imageSample = glm::vec2(i, j) + RND::next2D();
 
 		// Second, create ray with camera
 		Ray ray;
-		glm::vec3 W = scene->getCamera()->createRay(ray, imageSample, sampler->next2D());
+		glm::vec3 W = scene->getCamera()->createRay(ray, imageSample, RND::next2D());
 
 		// Third integrate
-		glm::vec3 result = W * integrator->evaluate(ray, scene, sampler);
+		glm::vec3 result = W * integrator->evaluate(ray, scene);
 
 		if (iteration > 0)
 			image[j * resolution.x + i] = (1 - blend) * image[j * resolution.x + i] + blend * result;

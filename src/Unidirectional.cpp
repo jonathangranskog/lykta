@@ -5,7 +5,7 @@
 
 using namespace Lykta;
 
-glm::vec3 Unidirectional::evaluate(const Ray& ray, const std::shared_ptr<Scene> scene, RandomSampler* sampler) {
+glm::vec3 Unidirectional::evaluate(const Ray& ray, const std::shared_ptr<Scene> scene) {
 	glm::vec3 result = glm::vec3(0.f);
 	glm::vec3 throughput = glm::vec3(1.f);
 	Ray r = ray;
@@ -49,7 +49,7 @@ glm::vec3 Unidirectional::evaluate(const Ray& ray, const std::shared_ptr<Scene> 
 		// RR
 		// comes after material contribution to make sure bounce count is equal
 		// between emitter sampling and material sampling
-		float s = sampler->next();
+		float s = RND::next1D();
 		float success = fminf(0.75f, Lykta::luminance(throughput));
 		if (s < (1 - success)) break;
 		throughput /= success;
@@ -60,8 +60,8 @@ glm::vec3 Unidirectional::evaluate(const Ray& ray, const std::shared_ptr<Scene> 
 		// Sample emitter
 		{
 			ei = EmitterInteraction(hit.pos);
-			const EmitterPtr emitter = scene->getRandomEmitter(sampler->next());
-			glm::vec3 Le = emitter->sample(sampler->next3D(), ei);
+			const EmitterPtr emitter = scene->getRandomEmitter(RND::next1D());
+			glm::vec3 Le = emitter->sample(RND::next3D(), ei);
 			Hit tmp = Hit();
 			if (!scene->shadowIntersect(ei.shadowRay)) {
 				float emitterPDF = ei.pdf;
@@ -86,7 +86,7 @@ glm::vec3 Unidirectional::evaluate(const Ray& ray, const std::shared_ptr<Scene> 
 		si.uv = hit.texcoord;
 		si.pos = hit.pos;
 		si.wi = glm::normalize(basis.toLocalSpace(-r.d));
-        glm::vec3 color = material->sample(sampler->next2D(), si, params);
+        glm::vec3 color = material->sample(RND::next2D(), si, params);
 		glm::vec3 out = glm::normalize(basis.fromLocalSpace(si.wo));
 		r = Ray(hit.pos, out);
 		hit = Hit();

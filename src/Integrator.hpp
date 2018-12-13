@@ -3,7 +3,7 @@
 #include <glm/vec3.hpp>
 #include <memory>
 #include "common.h"
-#include "random.h"
+#include "RandomPool.hpp"
 #include "Scene.hpp"
 
 namespace Lykta {
@@ -24,7 +24,7 @@ namespace Lykta {
 		
 		virtual void preprocess(const std::shared_ptr<Scene> scene) {}
 
-		virtual glm::vec3 evaluate(const Ray& ray, const std::shared_ptr<Scene> scene, RandomSampler* sampler) = 0;
+		virtual glm::vec3 evaluate(const Ray& ray, const std::shared_ptr<Scene> scene) = 0;
 
 		virtual void postprocess(const std::shared_ptr<Scene> scene) {}
 
@@ -36,7 +36,7 @@ namespace Lykta {
     public:
         AOIntegrator() {}
         ~AOIntegrator() {}
-        virtual glm::vec3 evaluate(const Ray& ray, const std::shared_ptr<Scene> scene, RandomSampler* sampler);
+        virtual glm::vec3 evaluate(const Ray& ray, const std::shared_ptr<Scene> scene);
     };
 
 	class BSDFIntegrator : public Integrator {
@@ -45,7 +45,7 @@ namespace Lykta {
 	public:
 		BSDFIntegrator() {}
 		~BSDFIntegrator() {}
-		virtual glm::vec3 evaluate(const Ray& ray, const std::shared_ptr<Scene> scene, RandomSampler* sampler);
+		virtual glm::vec3 evaluate(const Ray& ray, const std::shared_ptr<Scene> scene);
 	};
 
 	class Unidirectional : public Integrator {
@@ -54,6 +54,6 @@ namespace Lykta {
 	public:
 		Unidirectional() {}
 		~Unidirectional() {}
-		virtual glm::vec3 evaluate(const Ray& ray, const std::shared_ptr<Scene> scene, RandomSampler* sampler);
+		virtual glm::vec3 evaluate(const Ray& ray, const std::shared_ptr<Scene> scene);
 	};
 }

@@ -3,7 +3,7 @@
 
 using namespace Lykta;
 
-glm::vec3 BSDFIntegrator::evaluate(const Ray& ray, const std::shared_ptr<Scene> scene, RandomSampler* sampler) {
+glm::vec3 BSDFIntegrator::evaluate(const Ray& ray, const std::shared_ptr<Scene> scene) {
 	glm::vec3 result = glm::vec3(0.f);
 	glm::vec3 throughput = glm::vec3(1.f);
 	Ray r = ray;
@@ -28,7 +28,7 @@ glm::vec3 BSDFIntegrator::evaluate(const Ray& ray, const std::shared_ptr<Scene> 
 		}
 
 		// RR
-		float s = sampler->next();
+		float s = RND::next1D();
 		float success = fminf(0.75f, luminance(throughput));
 		if (s < (1 - success)) break;
 		throughput /= success;
@@ -40,7 +40,7 @@ glm::vec3 BSDFIntegrator::evaluate(const Ray& ray, const std::shared_ptr<Scene> 
 		si.pos = hit.pos;
 		si.wi = glm::normalize(basis.toLocalSpace(-r.d));
         MaterialParameters params = material->evalMaterialParameters(si.uv);
-        glm::vec3 color = material->sample(sampler->next2D(), si, params);
+        glm::vec3 color = material->sample(RND::next2D(), si, params);
 		glm::vec3 out = glm::normalize(basis.fromLocalSpace(si.wo));
 
 		throughput *= color;

@@ -6,7 +6,6 @@
 #include "Integrator.hpp"
 #include "Image.hpp"
 #include "Scene.hpp"
-#include "random.h"
 
 namespace Lykta {
 	class Renderer {
@@ -15,7 +14,6 @@ namespace Lykta {
 		std::shared_ptr<Scene> scene;
 		std::unique_ptr<Integrator> integrator;
 		Integrator::Type integratorType;
-		std::vector<RandomSampler> samplers;
 		glm::ivec2 resolution;
 		unsigned iteration;
 
