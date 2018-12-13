@@ -32,6 +32,7 @@
 
 #include <inttypes.h>
 #include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
 
 #define PCG32_DEFAULT_STATE  0x853c49e6748fea9bULL
 #define PCG32_DEFAULT_STREAM 0xda3e39cb94b95bdbULL

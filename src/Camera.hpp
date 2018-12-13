@@ -2,12 +2,14 @@
 
 #include "common.h"
 #include "Sampling.hpp"
+#include "RandomPool.hpp"
 #include <glm/vec2.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <cmath>
 
 namespace Lykta {
+
 	class Camera {
 	protected:
 		glm::ivec2 resolution;
@@ -30,6 +32,22 @@ namespace Lykta {
 
 	public:
 		virtual glm::vec3 createRay(Ray& ray, const glm::vec2& pixel, const glm::vec2& sample) const = 0;
+
+
+		virtual void createRayBatch(std::vector<Ray>& rays, std::vector<glm::vec3>& colors)  const {
+			rays.assign(resolution.x * resolution.y, Ray());
+			colors.assign(resolution.x * resolution.y, glm::vec3(0.f));
+
+			#pragma omp parallel for
+			for (int it = 0; it < resolution.x * resolution.y; it++) {
+				int i = it % resolution.x;
+				int j = it / resolution.x;
+
+				glm::vec2 pixel = glm::vec2(i, j) + RND::next2D();
+				glm::vec2 sample = RND::next2D();
+				colors[it] = createRay(rays[it], pixel, sample);
+			}
+		}
 
 		virtual const glm::vec2 getResolution() const { return resolution; }
 	};

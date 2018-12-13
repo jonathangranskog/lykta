@@ -8,7 +8,9 @@
 #include <filesystem/resolver.h>
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/document.h>
+#include <fstream>
 #include "Camera.hpp"
+#include "RealisticCamera.hpp"
 #include "Material.hpp"
 #include "Mesh.hpp"
 #include "Emitter.hpp"
@@ -133,6 +135,32 @@ namespace Lykta {
         }
 
 	public:
+
+		static inline std::vector<LensInterface> readLensFile(const std::string& filename) {
+			std::vector<LensInterface> interfaces;
+			std::ifstream in("E:/Projects/lykta/scenes/spheres/petzval.json");
+			std::stringstream sstr;
+			sstr << in.rdbuf();
+			rapidjson::Document document;
+			document.Parse(sstr.str().c_str());
+			assert(document.IsObject());
+			assert(document.HasMember("interfaces"));
+			const rapidjson::Value& arr = document["interfaces"];
+			for (rapidjson::SizeType i = 0; i < arr.Size(); i++) {
+				float curvature = arr[i]["curvature"].GetFloat();
+				float thickness = arr[i]["thickness"].GetFloat();
+				float ior = arr[i]["ior"].GetFloat();
+				float aperture = arr[i]["aperture"].GetFloat();
+				LensInterface element;
+				element.curvature = 0.001f * curvature;
+				element.thickness = 0.001f * thickness;
+				element.eta = ior;
+				element.aperture = 0.0005f * aperture;
+				interfaces.push_back(element);
+			}
+			return interfaces;
+		}
+
 		// Reads in meshes from JSON document...
 		// Also creates mesh emitters if emission is turned on
 		// Assigns materials too based on name string
@@ -257,7 +285,7 @@ namespace Lykta {
 			return materialMap;
 		}
 
-		static Camera* readCamera(rapidjson::Document& document) {
+		static Camera* readCamera(rapidjson::Document& document, filesystem::path& scenepath) {
 			if (!document.HasMember("camera")) {
 				Camera* cam = new PerspectiveCamera();
 				return cam;
@@ -268,7 +296,7 @@ namespace Lykta {
 			
 			const std::string type = cameraValue["type"].GetString();
 
-			if (type == "PerspectiveCamera") {
+			if (type == "PerspectiveCamera" || type == "RealisticCamera") {
 				glm::mat4 cameraToWorld = glm::mat4();
 
 				if (cameraValue.HasMember("lookat") && cameraValue.HasMember("center")) {
@@ -282,14 +310,29 @@ namespace Lykta {
 				}
 				
 				glm::ivec2 resolution = readIVector2("resolution", cameraValue);
-				float fov = cameraValue["fov"].GetFloat();
-				float nearClip = cameraValue["nearclip"].GetFloat();
-				float farClip = cameraValue["farclip"].GetFloat();
-				float apertureRadius = (cameraValue.HasMember("apertureRadius")) ? cameraValue["apertureRadius"].GetFloat() : 0.f;
-				float focusDistance = (cameraValue.HasMember("focusDistance")) ? cameraValue["focusDistance"].GetFloat() : 1.f;
+				
+				if (type == "PerspectiveCamera") {
+					float fov = cameraValue["fov"].GetFloat();
+					float nearClip = cameraValue["nearclip"].GetFloat();
+					float farClip = cameraValue["farclip"].GetFloat();
+					float apertureRadius = (cameraValue.HasMember("apertureRadius")) ? cameraValue["apertureRadius"].GetFloat() : 0.f;
+					float focusDistance = (cameraValue.HasMember("focusDistance")) ? cameraValue["focusDistance"].GetFloat() : 1.f;
 
-				Camera* cam = new PerspectiveCamera(cameraToWorld, resolution, fov, nearClip, farClip, apertureRadius, focusDistance);
-				return cam;
+					Camera* cam = new PerspectiveCamera(cameraToWorld, resolution, fov, nearClip, farClip, apertureRadius, focusDistance);
+					return cam;
+				}
+				else if (type == "RealisticCamera") {
+					float sensorShift = 0.f;
+					if (cameraValue.HasMember("sensorShift")) sensorShift = cameraValue["sensorShift"].GetFloat() * 0.001f;
+
+					assert(cameraValue.HasMember("lenses"));
+					std::string lensFile = cameraValue["lenses"].GetString();
+					assert(getRealPath(lensFile, scenepath));
+					std::vector<LensInterface> interfaces = readLensFile(lensFile);
+					Camera* cam = new RealisticCamera(interfaces, sensorShift, cameraToWorld, resolution);
+					return cam;
+				}
+				
 			}
 
 			Camera* cam = new PerspectiveCamera();

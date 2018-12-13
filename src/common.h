@@ -146,4 +146,13 @@ namespace Lykta {
 		return pdf1 / (pdf1 + pdf2);
 	}
 
+	inline bool refract(const glm::vec3& dir, const glm::vec3& normal, float eta, glm::vec3& out) {
+		float costhetai = glm::dot(dir, normal);
+		float sin2thetai = fmaxf(0.f, 1.f - costhetai * costhetai);
+		float sin2thetat = eta * eta * sin2thetai;
+		if (sin2thetat >= 1.f) return false;
+		float costhetat = sqrtf(1.f - sin2thetat);
+		out = eta * (-dir) + (eta * costhetai - costhetat) * normal;
+		return true;
+	}
 }

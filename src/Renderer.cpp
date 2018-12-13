@@ -5,7 +5,6 @@
 #include "omp.h"
 
 using namespace Lykta;
-std::vector<RandomSampler> RND::samplers;
 
 Renderer::Renderer() {
 	resolution = glm::ivec2(800, 800);
@@ -41,25 +40,21 @@ void Renderer::refresh() {
 void Renderer::renderFrame() {
 	float blend = 1.f / (iteration + 1);
 
+	// Create a batch of camera rays
+	std::vector<Ray> cameraRays;
+	std::vector<glm::vec3> cameraColors;
+	scene->getCamera()->createRayBatch(cameraRays, cameraColors);
+
 	#pragma omp parallel for schedule(dynamic) 
 	for (int it = 0; it < resolution.y * resolution.x; it++) {
 		int i = it % resolution.x;
 		int j = it / resolution.x;
-		int thread = omp_get_thread_num();
-		// First, get pixel that is being rendered
-		glm::vec2 imageSample = glm::vec2(i, j) + RND::next2D();
+		
+		// Integrate
+		glm::vec3 result = cameraColors[it] * integrator->evaluate(cameraRays[it], scene);
 
-		// Second, create ray with camera
-		Ray ray;
-		glm::vec3 W = scene->getCamera()->createRay(ray, imageSample, RND::next2D());
-
-		// Third integrate
-		glm::vec3 result = W * integrator->evaluate(ray, scene);
-
-		if (iteration > 0)
-			image[j * resolution.x + i] = (1 - blend) * image[j * resolution.x + i] + blend * result;
-		else
-			image[j * resolution.x + i] = result;
+		if (iteration > 0) image[it] = (1 - blend) * image[it] + blend * result;
+		else image[it] = result;
 	}
 
 	iteration++;

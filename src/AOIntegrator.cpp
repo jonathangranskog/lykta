@@ -10,7 +10,7 @@ glm::vec3 Lykta::AOIntegrator::evaluate(const Lykta::Ray& ray, const std::shared
 	}
 
 	Lykta::Basis basis = Lykta::Basis(hit.normal);
-	glm::vec3 out = basis.fromLocalSpace(Lykta::Sampling::cosineHemisphere(RND::next2D()));
+	glm::vec3 out = basis.fromLocalSpace(Lykta::Sampling::cosineHemisphere(Lykta::RND::next2D()));
 	Ray occlusionRay = Lykta::Ray(hit.pos, out, glm::vec2(EPS, maxlen));
 	bool shadowed = scene->shadowIntersect(occlusionRay);
 	return glm::vec3((float)!shadowed);
