@@ -19,10 +19,16 @@ namespace Lykta {
 		std::vector<MeshPtr> meshes;
 		std::vector<EmitterPtr> emitters;
 		EmitterPtr environment = nullptr;
-		// TODO: Add vector of textures
+		
 		// Embree specific variables
 		RTCDevice embree_device;
 		RTCScene embree_scene;
+		static ScenePtr activeScene;
+		
+		// Embree functions
+		void generateEmbreeScene();
+		unsigned createEmbreeGeometry(MeshPtr mesh);
+		static void opacityIntersectFilter(const RTCFilterFunctionNArguments* args);
 
 	public:
 		Scene() {};
@@ -30,7 +36,8 @@ namespace Lykta {
 
 		bool intersect(const Ray& ray, Hit& result) const;
 		bool shadowIntersect(const Ray& ray) const;
-
+		
+		
 		const glm::ivec2 getResolution() const {
 			return camera->getResolution();
 		}
@@ -64,10 +71,8 @@ namespace Lykta {
 			return camera;
 		}
 
-		static Scene* parseFile(const std::string& filename);
+		static ScenePtr parseFile(const std::string& filename);
 
-		// Embree functions
-		void generateEmbreeScene();
-		unsigned createEmbreeGeometry(MeshPtr mesh);
+		
 	};
 }

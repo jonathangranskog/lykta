@@ -44,6 +44,7 @@ namespace Lykta {
         TexturePtr<float> specularTexture;
         TexturePtr<float> tintTexture;
         TexturePtr<float> roughnessTexture;
+		TexturePtr<float> opacityTexture;
 
 	public:
 		SurfaceMaterial(const glm::vec3& diffuse, const glm::vec3& emission, float spec, float spectint, float rough, float ior_ ) {
@@ -61,12 +62,13 @@ namespace Lykta {
             specularTexture = nullptr;
             tintTexture = nullptr;
             roughnessTexture = nullptr;
+			opacityTexture = nullptr;
 		};
 
         SurfaceMaterial(const glm::vec3 &diffuse, const glm::vec3 &emission, float spec,
                         float spectint, float rough, float ior_,
                         TexturePtr<glm::vec3> diffTex, TexturePtr<float> specTex,
-                        TexturePtr<float> tintTex, TexturePtr<float> roughTex) {
+                        TexturePtr<float> tintTex, TexturePtr<float> roughTex, TexturePtr<float> opacTex) {
             diffuseColor = diffuse;
             emissiveColor = emission;
             specular = spec;
@@ -81,6 +83,7 @@ namespace Lykta {
             specularTexture = specTex;
             tintTexture = tintTex;
             roughnessTexture = roughTex;
+			opacityTexture = opacTex;
         };
 
 		~SurfaceMaterial() {};
@@ -90,6 +93,10 @@ namespace Lykta {
 
 		glm::vec3 getEmission() const {
 			return emissiveColor;
+		}
+
+		const TexturePtr<float> getOpacityTexture() const {
+			return opacityTexture;
 		}
 
         glm::vec3 evalSpecular(SurfaceInteraction& si, const MaterialParameters& params) const;

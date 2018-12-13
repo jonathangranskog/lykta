@@ -239,13 +239,15 @@ namespace Lykta {
                 TexturePtr<float> roughnessTexture = nullptr;
                 if (arr[i].HasMember("roughnessTexture")) roughnessTexture = readFloatTexture("roughnessTexture", arr[i], scenepath);
 
+				TexturePtr<float> opacityTexture = nullptr;
+				if (arr[i].HasMember("opacityTexture")) opacityTexture = readFloatTexture("opacityTexture", arr[i], scenepath);
 
                 // Create material
                 MaterialPtr mat = MaterialPtr(new SurfaceMaterial(diffuseColor, emissiveColor,
                                                                   specular, specularTint,
                                                                   roughness, ior, diffuseTexture,
                                                                   specularTexture, tintTexture,
-                                                                  roughnessTexture));
+                                                                  roughnessTexture, opacityTexture));
 
 				const rapidjson::Value& name = arr[i]["name"];
 				assert(name.IsString());

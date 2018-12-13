@@ -19,10 +19,12 @@ namespace Lykta {
 	class Emitter;
 	class Mesh;
 	class SurfaceMaterial;
+	class Scene;
 
 	typedef std::shared_ptr<Emitter> EmitterPtr;
 	typedef std::shared_ptr<Mesh> MeshPtr;
     typedef std::shared_ptr<SurfaceMaterial> MaterialPtr;
+	typedef std::shared_ptr<Scene> ScenePtr;
 
 	struct Ray {
 		glm::vec3 o;

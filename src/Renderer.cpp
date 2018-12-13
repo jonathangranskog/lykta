@@ -14,7 +14,7 @@ Renderer::Renderer() {
 }
 
 void Renderer::openScene(const std::string& filename) {
-	scene = std::shared_ptr<Scene>(Scene::parseFile(filename));
+	scene = Scene::parseFile(filename);
 	resolution = scene->getResolution();
 	image = Image<glm::vec3>(resolution.x, resolution.y);
 	refresh();
@@ -34,8 +34,8 @@ void Renderer::refresh() {
 		integrator = std::unique_ptr<Integrator>(new Unidirectional());
 	}
 
-	integrator->preprocess(scene);
 	RND::init();
+	integrator->preprocess(scene);
 }
 
 void Renderer::renderFrame() {
