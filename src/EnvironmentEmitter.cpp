@@ -49,7 +49,8 @@ glm::vec3 EnvironmentEmitter::uv2dir(const glm::vec2& uv) const {
 }
 
 glm::vec2 EnvironmentEmitter::uv2img(const glm::vec2& uv) const {
-	return glm::vec2(uv.x * dims.x, (1.f - uv.y) * dims.y);
+	glm::vec2 c = glm::vec2(uv.x * dims.x, (1.f - uv.y) * dims.y);
+	return glm::vec2(clamp(c.x, 0, dims.x - 1), clamp(c.y, 0, dims.y - 1));
 }
 
 glm::vec2 EnvironmentEmitter::img2uv(const glm::vec2& img) const {

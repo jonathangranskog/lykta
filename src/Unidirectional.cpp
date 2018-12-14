@@ -37,7 +37,7 @@ glm::vec3 Unidirectional::evaluate(const Ray& ray, const std::shared_ptr<Scene> 
 	EmitterInteraction ei(hit.pos, r.o, hit.normal, r.d);
 	glm::vec3 emitterEval = (emitter) ? emitter->eval(ei) : glm::vec3(0.f);
     MaterialParameters params = material->evalMaterialParameters(hit.texcoord);
-
+	
 	while (intersected) {
 
 		// Add material contribution if hit emitter
@@ -55,6 +55,7 @@ glm::vec3 Unidirectional::evaluate(const Ray& ray, const std::shared_ptr<Scene> 
 		throughput /= success;
 
 		// Create basis
+		material->evalShadingNormal(hit.normal, r.d, hit.texcoord);
 		Basis basis = Basis(hit.normal);
 
 		// Sample emitter
@@ -63,7 +64,7 @@ glm::vec3 Unidirectional::evaluate(const Ray& ray, const std::shared_ptr<Scene> 
 			const EmitterPtr emitter = scene->getRandomEmitter(RND::next1D());
 			glm::vec3 Le = emitter->sample(RND::next3D(), ei);
 			Hit tmp = Hit();
-			if (!scene->shadowIntersect(ei.shadowRay)) {
+			if (!scene->intersect(ei.shadowRay, tmp)) {
 				float emitterPDF = ei.pdf;
 				SurfaceInteraction si = SurfaceInteraction();
 				si.wi = glm::normalize(basis.toLocalSpace(-r.d));
@@ -99,7 +100,7 @@ glm::vec3 Unidirectional::evaluate(const Ray& ray, const std::shared_ptr<Scene> 
 			mesh = meshes[hit.geomID];
 			emitter = mesh->emitter;
             params = material->evalMaterialParameters(hit.texcoord);
-
+			
 			// compute material MIS weight and evaluate emitter
 			if (emitter != nullptr) {
 				ei = EmitterInteraction(hit.pos, r.o, hit.normal, r.d);

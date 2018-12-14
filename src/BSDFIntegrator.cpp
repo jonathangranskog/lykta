@@ -34,13 +34,14 @@ glm::vec3 BSDFIntegrator::evaluate(const Ray& ray, const std::shared_ptr<Scene> 
 		throughput /= success;
 
 		// Sample BSDF
+		material->evalShadingNormal(hit.normal, r.d, hit.texcoord);
 		Basis basis = Basis(hit.normal);
 		SurfaceInteraction si;
 		si.uv = hit.texcoord;
 		si.pos = hit.pos;
 		si.wi = glm::normalize(basis.toLocalSpace(-r.d));
         MaterialParameters params = material->evalMaterialParameters(si.uv);
-        glm::vec3 color = material->sample(RND::next2D(), si, params);
+		glm::vec3 color = material->sample(RND::next2D(), si, params);
 		glm::vec3 out = glm::normalize(basis.fromLocalSpace(si.wo));
 
 		throughput *= color;

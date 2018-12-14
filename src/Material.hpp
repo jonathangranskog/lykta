@@ -39,6 +39,8 @@ namespace Lykta {
 		float alpha;
 		float alpha2;
 
+		bool isTwoSided;
+
         // Textures
         TexturePtr<glm::vec3> diffuseTexture;
         TexturePtr<float> specularTexture;
@@ -47,7 +49,7 @@ namespace Lykta {
 		TexturePtr<float> opacityTexture;
 
 	public:
-		SurfaceMaterial(const glm::vec3& diffuse, const glm::vec3& emission, float spec, float spectint, float rough, float ior_ ) {
+		SurfaceMaterial(const glm::vec3& diffuse, const glm::vec3& emission, float spec, float spectint, float rough, float ior_, bool twosided) {
 			diffuseColor = diffuse;
 			emissiveColor = emission;
 			specular = spec;
@@ -57,6 +59,8 @@ namespace Lykta {
 
 			alpha = rough * rough;
 			alpha2 = alpha * alpha;
+			
+			isTwoSided = twosided;
 
             diffuseTexture = nullptr;
             specularTexture = nullptr;
@@ -66,7 +70,7 @@ namespace Lykta {
 		};
 
         SurfaceMaterial(const glm::vec3 &diffuse, const glm::vec3 &emission, float spec,
-                        float spectint, float rough, float ior_,
+                        float spectint, float rough, float ior_, bool twosided,
                         TexturePtr<glm::vec3> diffTex, TexturePtr<float> specTex,
                         TexturePtr<float> tintTex, TexturePtr<float> roughTex, TexturePtr<float> opacTex) {
             diffuseColor = diffuse;
@@ -79,6 +83,8 @@ namespace Lykta {
             alpha = rough * rough;
             alpha2 = alpha * alpha;
 
+			isTwoSided = twosided;
+
             diffuseTexture = diffTex;
             specularTexture = specTex;
             tintTexture = tintTex;
@@ -90,6 +96,7 @@ namespace Lykta {
 		SurfaceMaterial() {};
 
         MaterialParameters evalMaterialParameters(const glm::vec2& uv) const;
+		void evalShadingNormal(glm::vec3& normal, const glm::vec3& view, const glm::vec2& uv) const;
 
 		glm::vec3 getEmission() const {
 			return emissiveColor;

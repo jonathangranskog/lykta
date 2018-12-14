@@ -48,7 +48,7 @@ namespace Lykta {
 
 		const EmitterPtr getRandomEmitter(float r) {
 			if (emitters.size() == 0) return nullptr;
-			return emitters[(int)r * emitters.size()];
+			return emitters[(int)(r * emitters.size())];
 		}
 
 		const std::vector<EmitterPtr> getEmitters() {

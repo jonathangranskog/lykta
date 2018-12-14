@@ -254,6 +254,9 @@ namespace Lykta {
 				if (arr[i].HasMember("ior")) ior = arr[i]["ior"].GetFloat();
 				else ior = 1.33f;
 
+				bool twosided = false;
+				if (arr[i].HasMember("twoSided")) twosided = arr[i]["twoSided"].GetBool();
+
                 // Read textures
                 TexturePtr<glm::vec3> diffuseTexture = nullptr;
                 if (arr[i].HasMember("diffuseTexture")) diffuseTexture = readVec3Texture("diffuseTexture", arr[i], scenepath);
@@ -273,7 +276,7 @@ namespace Lykta {
                 // Create material
                 MaterialPtr mat = MaterialPtr(new SurfaceMaterial(diffuseColor, emissiveColor,
                                                                   specular, specularTint,
-                                                                  roughness, ior, diffuseTexture,
+                                                                  roughness, ior, twosided, diffuseTexture,
                                                                   specularTexture, tintTexture,
                                                                   roughnessTexture, opacityTexture));
 

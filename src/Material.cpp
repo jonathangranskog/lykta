@@ -25,6 +25,14 @@ MaterialParameters SurfaceMaterial::evalMaterialParameters(const glm::vec2& uv) 
     return params;
 }
 
+void SurfaceMaterial::evalShadingNormal(glm::vec3& normal, const glm::vec3& view, const glm::vec2& uv) const {
+	if (isTwoSided) {
+		if (glm::dot(normal, view) > 0) {
+			normal = -normal;
+		}
+	}
+}
+
 glm::vec3 SurfaceMaterial::evalSpecular(SurfaceInteraction& si, const MaterialParameters& params) const {
 	if (localCosTheta(si.wo) <= 0.f || localCosTheta(si.wi) <= 0.f) {
 		si.pdf = 0.f;
