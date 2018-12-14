@@ -4,17 +4,17 @@ using namespace Lykta;
 
 template<>
 Texture<glm::vec3>::Texture(const std::string &path) {
-    image = std::unique_ptr<Image<glm::vec3>>(new Image<glm::vec3>(path));
+    image = ImagePtr<glm::vec3>(new Image<glm::vec3>(path));
 }
 
 template<>
 Texture<glm::vec4>::Texture(const std::string& path) {
-    image = std::unique_ptr<Image<glm::vec4>>(new Image<glm::vec4>(path));
+    image = ImagePtr<glm::vec4>(new Image<glm::vec4>(path));
 }
 
 template<>
 Texture<float>::Texture(const std::string& path) {
-    image = std::unique_ptr<Image<float>>(new Image<float>(path));
+    image = ImagePtr<float>(new Image<float>(path));
 }
 
 template<typename T>

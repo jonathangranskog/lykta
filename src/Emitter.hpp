@@ -4,6 +4,7 @@
 #include "common.h"
 #include "Mesh.hpp"
 #include "Texture.hpp"
+#include "Distribution.hpp"
 
 namespace Lykta {
 
@@ -58,13 +59,17 @@ namespace Lykta {
 	class EnvironmentEmitter : public Emitter {
 	private:
 		TexturePtr<glm::vec3> map;
+		Distribution2D samplingDistribution;
+		glm::ivec2 dims;
 		float intensity;
 
 		glm::vec2 dir2uv(const glm::vec3& dir) const;
 		glm::vec3 uv2dir(const glm::vec2& uv) const;
+		glm::vec2 uv2img(const glm::vec2& uv) const;
+		glm::vec2 img2uv(const glm::vec2& img) const;
 	
 	public:
-		EnvironmentEmitter(TexturePtr<glm::vec3> m, float intens = 1.f) : map(m), intensity(intens) {}
+		EnvironmentEmitter(TexturePtr<glm::vec3> m, float intens = 1.f);
 		EnvironmentEmitter() {}
 		~EnvironmentEmitter() {}
 

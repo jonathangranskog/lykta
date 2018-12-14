@@ -36,6 +36,10 @@ namespace Lykta {
             return data[i];
         }
 
+		T read(const glm::ivec2& index) {
+			return data[index.y * width + index.x];
+		}
+
 		void save(const std::string& path) const;
 
         glm::ivec2 getDims() const {
@@ -47,4 +51,7 @@ namespace Lykta {
 		}
 
 	};
+
+	template <typename T>
+	using ImagePtr = std::shared_ptr<Image<T>>;
 }
