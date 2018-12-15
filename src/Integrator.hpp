@@ -12,9 +12,9 @@ namespace Lykta {
 
 	public:
 		enum Type {
-			BSDF = 0,
-			AO = 1,
-			PT = 2
+			PT = 0,
+			BSDF = 1,
+			AO = 2
 		};
 
 		virtual ~Integrator() {}

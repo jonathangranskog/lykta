@@ -23,14 +23,14 @@ void Renderer::refresh() {
 	iteration = 0;
 
 	// Select integrator
-	if (integratorType == Integrator::Type::BSDF) {
+	if (integratorType == Integrator::Type::PT) {
+		integrator = std::unique_ptr<Integrator>(new Unidirectional());
+	}
+	else if (integratorType == Integrator::Type::BSDF) {
 		integrator = std::unique_ptr<Integrator>(new BSDFIntegrator());
 	}
 	else if (integratorType == Integrator::Type::AO) {
 		integrator = std::unique_ptr<Integrator>(new AOIntegrator());
-	}
-	else if (integratorType == Integrator::Type::PT) {
-		integrator = std::unique_ptr<Integrator>(new Unidirectional());
 	}
 
 	RND::init();
