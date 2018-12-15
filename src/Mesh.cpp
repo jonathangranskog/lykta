@@ -8,6 +8,31 @@
 
 using namespace Lykta;
 
+void Mesh::setHitAttributes(RTCHit& hit, Hit& result) const {
+	const Triangle& tri = triangles[hit.primID];
+	float u = hit.u;
+	float v = hit.v;
+	float w = 1 - u - v;
+	
+	// Set normal
+	if (tri.nx != -1 && tri.ny != -1 && tri.nz != -1) {
+		result.normal = w * normals[tri.nx] + u * normals[tri.ny] + v * normals[tri.nz];
+		result.normal = glm::normalize(result.normal);
+	}
+	else {
+		result.normal = glm::vec3(hit.Ng_x, hit.Ng_y, hit.Ng_z);
+	}
+
+	// Set texture coordinates
+	if (tri.tx != -1 && tri.ty != -1 && tri.tz != -1) {
+		result.texcoord = w * texcoords[tri.tx] + u * texcoords[tri.ty] + v * texcoords[tri.tz];
+	}
+	else {
+		result.texcoord = glm::vec2(0);
+	}
+}
+
+
 void Mesh::constructCDF() {
 	if (triangles.size() == 0) return;
 

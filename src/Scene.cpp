@@ -14,10 +14,7 @@ using namespace Lykta;
 bool Scene::intersect(const Ray& r, Hit& result) const {
 	RTCIntersectContext ctx;
 	rtcInitIntersectContext(&ctx);
-	RTCRay ray;
-	ray.org_x = r.o.x; ray.org_y = r.o.y; ray.org_z = r.o.z;
-	ray.dir_x = r.d.x; ray.dir_y = r.d.y; ray.dir_z = r.d.z;
-	ray.tnear = r.t.x; ray.tfar = r.t.y; ray.time = 0.f;
+	RTCRay ray = r.createRTCRay();
 
 	RTCHit hit;
 	hit.geomID = RTC_INVALID_GEOMETRY_ID;
@@ -32,27 +29,8 @@ bool Scene::intersect(const Ray& r, Hit& result) const {
 		unsigned geomID = rayhit.hit.geomID;
 		// tfar contains hit distance
 		result.pos = r.o + rayhit.ray.tfar * r.d;
-		
 		const MeshPtr mesh = meshes[geomID];
-		const Triangle& tri = mesh->triangles[rayhit.hit.primID];
-		float u = rayhit.hit.u, v = rayhit.hit.v;
-		float w = 1.f - u - v;
-
-		if (tri.nx != -1 && tri.ny != -1 && tri.nz != -1) {
-			result.normal = w * mesh->normals[tri.nx] + u * mesh->normals[tri.ny] + v * mesh->normals[tri.nz];
-			result.normal = glm::normalize(result.normal);
-		}
-		else {
-			result.normal = glm::vec3(rayhit.hit.Ng_x, rayhit.hit.Ng_y, rayhit.hit.Ng_z);
-		}
-
-		if (tri.tx != -1 && tri.ty != -1 && tri.tz != -1) {
-			result.texcoord = w * mesh->texcoords[tri.tx] + u * mesh->texcoords[tri.ty] + v * mesh->texcoords[tri.tz];
-		}
-		else {
-			result.texcoord = glm::vec2(0);
-		}
-
+		mesh->setHitAttributes(rayhit.hit, result);
 		result.geomID = geomID;
 
 		return true;
@@ -64,11 +42,7 @@ bool Scene::intersect(const Ray& r, Hit& result) const {
 bool Scene::shadowIntersect(const Ray& r) const {
 	RTCIntersectContext ctx;
 	rtcInitIntersectContext(&ctx);
-	RTCRay ray;
-	ray.org_x = r.o.x; ray.org_y = r.o.y; ray.org_z = r.o.z;
-	ray.dir_x = r.d.x; ray.dir_y = r.d.y; ray.dir_z = r.d.z;
-	ray.tnear = r.t.x; ray.tfar = r.t.y; ray.time = 0.f;
-	ray.mask = -1;
+	RTCRay ray = r.createRTCRay();
 
 	// Fires Embree shadow ray
 	rtcOccluded1(embree_scene, &ctx, &ray);
@@ -135,7 +109,7 @@ unsigned Scene::createEmbreeGeometry(MeshPtr mesh) {
 	rtcSetSharedGeometryBuffer(geometry, RTC_BUFFER_TYPE_NORMAL, 0, RTC_FORMAT_FLOAT3, (void*)mesh->normals.data(), 0, sizeof(glm::vec3), mesh->normals.size());
 	
 	rtcSetGeometryIntersectFilterFunction(geometry, opacityIntersectFilter);
-	rtcSetGeometryIntersectFilterFunction(geometry, opacityIntersectFilter);
+	rtcSetGeometryOccludedFilterFunction(geometry, opacityIntersectFilter);
 	
 	rtcCommitGeometry(geometry);
 	unsigned geomID = rtcAttachGeometry(embree_scene, geometry);

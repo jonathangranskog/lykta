@@ -8,6 +8,8 @@
 #include <glm/common.hpp>
 #include <glm/geometric.hpp>
 
+#include <embree3/rtcore.h>
+
 #undef M_PI
 #define EPS 1e-4f
 #define FLT_EPS 1e-15f
@@ -36,6 +38,14 @@ namespace Lykta {
 			t = glm::vec2(EPS, INFINITY);
 		}
 		Ray(glm::vec3 orig, glm::vec3 dir, glm::vec2 tz) : o(orig), d(dir), t(tz) {}
+
+		inline RTCRay createRTCRay() const {
+			RTCRay ray;
+			ray.org_x = o.x; ray.org_y = o.y; ray.org_z = o.z;
+			ray.dir_x = d.x; ray.dir_y = d.y; ray.dir_z = d.z;
+			ray.tnear = t.x; ray.tfar = t.y; ray.time = 0.f; ray.mask = -1;
+			return ray;
+		}
 	};
 
 	struct Hit {

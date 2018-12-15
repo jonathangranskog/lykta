@@ -16,6 +16,7 @@ namespace Lykta {
 
 	class Mesh {
 	public:
+		// TODO: Put all of these into a dictionary
 		std::vector<glm::vec3> positions;
 		std::vector<glm::vec3> normals;
 		std::vector<glm::vec2> texcoords;
@@ -27,6 +28,8 @@ namespace Lykta {
 
 		Mesh() {}
 		~Mesh() {}
+
+		void setHitAttributes(RTCHit& hit, Hit& result) const;
 
 		void constructCDF();
 		
