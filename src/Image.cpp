@@ -47,6 +47,8 @@ Image<glm::vec3>::Image(const std::string& path) {
 			data[j * width + i] = c;
 		}
 	}
+
+	delete[] out;
 }
 
 template <>
@@ -70,6 +72,8 @@ Image<glm::vec4>::Image(const std::string& path) {
 			data[j * width + i] = c;
 		}
 	}
+
+	delete[] out;
 }
 
 template <>
@@ -85,6 +89,8 @@ Image<float>::Image(const std::string& path) {
 			data[j * width + i] = out[j * width * channels + i * channels + 0];
 		}
 	}
+
+	delete[] out;
 }
 
 template <>

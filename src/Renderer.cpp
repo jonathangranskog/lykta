@@ -9,7 +9,7 @@ using namespace Lykta;
 Renderer::Renderer() {
 	resolution = glm::ivec2(800, 800);
 	image = Image<glm::vec3>(resolution.x, resolution.y);
-	integratorType = Integrator::Type::BSDF;
+	integratorType = Integrator::Type::PT;
 }
 
 void Renderer::openScene(const std::string& filename) {

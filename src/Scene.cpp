@@ -58,6 +58,16 @@ ScenePtr Scene::activeScene;
 ScenePtr Scene::parseFile(const std::string& filename) {
 	ScenePtr scene = ScenePtr(new Scene());
 
+	if (activeScene) {
+		rtcReleaseScene(activeScene->embree_scene);
+		rtcReleaseDevice(activeScene->embree_device);
+		activeScene->meshes.clear();
+		activeScene->materials.clear();
+		activeScene->emitters.clear();
+		activeScene->camera.release();
+		activeScene.reset();
+	}
+
 	std::ifstream in(filename.c_str());
 	std::stringstream sstr;
 	sstr << in.rdbuf();
