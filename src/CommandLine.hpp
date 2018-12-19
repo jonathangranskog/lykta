@@ -42,6 +42,7 @@ namespace Lykta {
 
 			filesystem::path scenePath = filesystem::path(filename);
 			std::string file = scenePath.filename();
+			file = file.substr(0, file.size() - 5);
 			file.append(".png");
 			filesystem::path folder = scenePath.parent_path();
 			filesystem::path image = filesystem::path(file);
