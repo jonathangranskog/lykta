@@ -9,6 +9,7 @@
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/document.h>
 #include <fstream>
+#include <glm/gtc/matrix_access.hpp>
 #include "Camera.hpp"
 #include "RealisticCamera.hpp"
 #include "Material.hpp"
@@ -47,18 +48,21 @@ namespace Lykta {
 			glm::vec3 translate = (transformValue.HasMember("translate")) ? readVector3("translate", transformValue) : glm::vec3(0.f);
 			glm::vec3 rotate = (transformValue.HasMember("rotate")) ? readVector3("rotate", transformValue) : glm::vec3(0.f);
 			glm::vec3 scale = (transformValue.HasMember("scale")) ? readVector3("scale", transformValue) : glm::vec3(1.f);
-			rotate *= (M_PI / 180.f); // make into radians
+			rotate = glm::radians(rotate);
 
 			// Default transform order
-			std::string order = "SRT";
+			std::string order = "TRS";
 			if (transformValue.HasMember("order")) order = std::string(transformValue["order"].GetString());
 			for (char& c : order) {
 				if (c == 'S') matrix = glm::scale(matrix, scale);
 				else if (c == 'R') {
 					// rotation order could also be changed later...
-					matrix = glm::rotate(matrix, rotate.x, glm::vec3(1, 0, 0));
-					matrix = glm::rotate(matrix, rotate.y, glm::vec3(0, 1, 0));
-					matrix = glm::rotate(matrix, rotate.z, glm::vec3(0, 0, 1));
+					glm::mat4 rx = glm::transpose(glm::rotate(glm::mat4(1.f), rotate.x, glm::vec3(1, 0, 0)));
+					glm::mat4 ry = glm::transpose(glm::rotate(glm::mat4(1.f), rotate.y, glm::vec3(0, 1, 0)));
+					glm::mat4 rz = glm::transpose(glm::rotate(glm::mat4(1.f), rotate.z, glm::vec3(0, 0, 1)));
+					
+					glm::mat4 result = rx * ry * rz;
+					matrix *= result;
 				}
 				else if (c == 'T') matrix = glm::translate(matrix, translate);
 			}
