@@ -359,10 +359,16 @@ namespace Lykta {
 			// If file exists
 			if (getRealPath(filename, scenepath)) {
 				TexturePtr<glm::vec3> map = TexturePtr<glm::vec3>(new Texture<glm::vec3>(filename));
-				float intensity = 1.f;
+				
+				float intensity = 1.f, rotation = 0.f;
+				
 				if (environmentObject.HasMember("intensity") && environmentObject["intensity"].IsFloat()) 
 					intensity = environmentObject["intensity"].GetFloat();
-				EmitterPtr emitter = EmitterPtr(new EnvironmentEmitter(map, intensity));
+				
+				if (environmentObject.HasMember("rotation") && environmentObject["rotation"].IsFloat())
+					rotation = glm::radians(environmentObject["rotation"].GetFloat());
+				
+				EmitterPtr emitter = EmitterPtr(new EnvironmentEmitter(map, intensity, rotation));
 				emitters.push_back(emitter);
 				return emitter;
 			}

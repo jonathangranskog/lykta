@@ -62,14 +62,16 @@ namespace Lykta {
 		Distribution2D samplingDistribution;
 		glm::ivec2 dims;
 		float intensity;
+		float rotation;
 
 		glm::vec2 dir2uv(const glm::vec3& dir) const;
 		glm::vec3 uv2dir(const glm::vec2& uv) const;
 		glm::vec2 uv2img(const glm::vec2& uv) const;
 		glm::vec2 img2uv(const glm::vec2& img) const;
+		inline glm::vec3 rotateDir(const glm::vec3& dir) const;
 	
 	public:
-		EnvironmentEmitter(TexturePtr<glm::vec3> m, float intens = 1.f);
+		EnvironmentEmitter(TexturePtr<glm::vec3> m, float intens = 1.f, float rot = 0.f);
 		EnvironmentEmitter() {}
 		~EnvironmentEmitter() {}
 

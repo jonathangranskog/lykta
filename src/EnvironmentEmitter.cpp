@@ -3,9 +3,10 @@
 
 using namespace Lykta;
 
-EnvironmentEmitter::EnvironmentEmitter(TexturePtr<glm::vec3> m, float intens) {
+EnvironmentEmitter::EnvironmentEmitter(TexturePtr<glm::vec3> m, float intens, float rot) {
 	map = m;
 	intensity = intens;
+	rotation = rot;
 
 	// Construct image for CDF
 	ImagePtr<glm::vec3> img = m->getImage();
@@ -30,9 +31,17 @@ EnvironmentEmitter::EnvironmentEmitter(TexturePtr<glm::vec3> m, float intens) {
 	samplingDistribution = Distribution2D(distr);
 }
 
+inline glm::vec3 EnvironmentEmitter::rotateDir(const glm::vec3& dir) const {
+	float angle = M_PI/2 + rotation;
+	float s = sin(angle);
+	float c = cos(angle);
+	return glm::vec3(c * dir.x - s * dir.z, dir.y, s * dir.x + c * dir.z);
+}
+
 glm::vec2 EnvironmentEmitter::dir2uv(const glm::vec3& dir) const {
-	float theta = std::acos(dir.y);
-	float phi = std::atan2(dir.z, dir.x) + M_PI;
+	glm::vec3 d = rotateDir(dir);
+	float theta = std::acos(d.y);
+	float phi = std::atan2(d.z, d.x) + M_PI;
 	phi /= 2 * M_PI;
 	theta /= M_PI;
 	return glm::vec2(phi, 1.f - theta);
@@ -45,7 +54,7 @@ glm::vec3 EnvironmentEmitter::uv2dir(const glm::vec2& uv) const {
 	float xz = sqrtf(1 - y * y);
 	float x = xz * cos(phi);
 	float z = xz * sin(phi);
-	return glm::vec3(x, y, z);
+	return rotateDir(glm::vec3(x, y, z));
 }
 
 glm::vec2 EnvironmentEmitter::uv2img(const glm::vec2& uv) const {
