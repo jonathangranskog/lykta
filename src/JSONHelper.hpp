@@ -73,6 +73,7 @@ namespace Lykta {
         static inline bool getRealPath(std::string& filename, filesystem::path& scenepath) {
             filesystem::path filepath = filesystem::path(filename);
             // If file is not found using relative path, make absolute path
+
             if (!filepath.is_file()) filepath = scenepath/filepath;
             else {
                 filename = filepath.str();
@@ -142,7 +143,7 @@ namespace Lykta {
 
 		static inline std::vector<LensInterface> readLensFile(const std::string& filename) {
 			std::vector<LensInterface> interfaces;
-			std::ifstream in("E:/Projects/lykta/scenes/spheres/petzval.json");
+			std::ifstream in(filename);
 			std::stringstream sstr;
 			sstr << in.rdbuf();
 			rapidjson::Document document;
@@ -334,8 +335,14 @@ namespace Lykta {
 
 					assert(cameraValue.HasMember("lenses"));
 					std::string lensFile = cameraValue["lenses"].GetString();
-					assert(getRealPath(lensFile, scenepath));
-					std::vector<LensInterface> interfaces = readLensFile(lensFile);
+                    filesystem::path filepath = filesystem::path(lensFile);
+
+                    if (!filepath.is_file()) {
+                        lensFile.insert(0, "/");
+                        lensFile.insert(0, scenepath.str());
+                    } 
+
+                    std::vector<LensInterface> interfaces = readLensFile(lensFile);
 					Camera* cam = new RealisticCamera(interfaces, sensorShift, cameraToWorld, resolution);
 					return cam;
 				}
