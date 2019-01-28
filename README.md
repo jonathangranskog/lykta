@@ -74,3 +74,18 @@ The CMake build process assumes the default Brew installation on OS X so if you 
   ]
 }
 ```
+
+### Houdini Export
+
+In the Houdini folder you can find two digital assets that are used to export Houdini scenes directly into Lykta. This has only been tested with H17.0.416. The exporter is a python script in the Lyktasave digital asset. It runs through every node in the obj/ and looks for NULL nodes named "LYKTA_EXPORT" and these are then saved as .obj files that are read by Lykta. REMEMBER, to add normal attributes to geometry!
+
+In addition, all "principledshader" materials are exported as Lykta materials that are then connected to their respective geometry. The camera exported into the Lykta scene HAS to be a "lyktacam", which is the other digital asset provided. It works exactly like a normal Houdini camera. Emitters are only created from geometry with materials that have emission set to a value larger than 0. No native Houdini lights are supported currently except environment lights (HDR files only).
+
+The Lyktasave node has a few buttons and parameters which need to be setup before usage. All of these are pretty self explanatory. 
+* 'Export' exports the geometry and JSON scene file
+* 'Render Frame' renders the current frame
+* 'Render Frame Range' renders an animation based on the "Frame Range" parameter
+* 'Executable' is the path to a built Lykta executable
+* 'Save Folder' is the location where scenes, images and geometry will be saved
+* 'Samples' is just the number of samples used for each frame
+* 'Frame Range' refers to the range of frames rendered if "Render Frame Range" is pressed

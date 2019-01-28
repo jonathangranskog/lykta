@@ -20,6 +20,7 @@ namespace Lykta {
         glm::vec3 diffuseColor;
         float specular;
         float specularTint;
+		float refractivity;
         float roughness;
         float ior;
         float alpha;
@@ -33,6 +34,7 @@ namespace Lykta {
         glm::vec3 emissiveColor;
         float specular;
 		float specularTint;
+		float refractivity;
 		float roughness;
 		float ior;
 
@@ -45,15 +47,17 @@ namespace Lykta {
         TexturePtr<glm::vec3> diffuseTexture;
         TexturePtr<float> specularTexture;
         TexturePtr<float> tintTexture;
+		TexturePtr<float> refractionTexture;
         TexturePtr<float> roughnessTexture;
 		TexturePtr<float> opacityTexture;
 
 	public:
-		SurfaceMaterial(const glm::vec3& diffuse, const glm::vec3& emission, float spec, float spectint, float rough, float ior_, bool twosided) {
+		SurfaceMaterial(const glm::vec3& diffuse, const glm::vec3& emission, float spec, float spectint, float refr, float rough, float ior_, bool twosided) {
 			diffuseColor = diffuse;
 			emissiveColor = emission;
 			specular = spec;
 			specularTint = spectint;
+			refractivity = refr;
 			roughness = rough;
 			ior = ior_;
 
@@ -65,18 +69,20 @@ namespace Lykta {
             diffuseTexture = nullptr;
             specularTexture = nullptr;
             tintTexture = nullptr;
+			refractionTexture = nullptr;
             roughnessTexture = nullptr;
 			opacityTexture = nullptr;
 		};
 
         SurfaceMaterial(const glm::vec3 &diffuse, const glm::vec3 &emission, float spec,
-                        float spectint, float rough, float ior_, bool twosided,
-                        TexturePtr<glm::vec3> diffTex, TexturePtr<float> specTex,
-                        TexturePtr<float> tintTex, TexturePtr<float> roughTex, TexturePtr<float> opacTex) {
+                        float spectint, float refr, float rough, float ior_, bool twosided,
+                        TexturePtr<glm::vec3> diffTex, TexturePtr<float> specTex, TexturePtr<float> tintTex,
+						TexturePtr<float> refrTex, TexturePtr<float> roughTex, TexturePtr<float> opacTex) {
             diffuseColor = diffuse;
             emissiveColor = emission;
             specular = spec;
             specularTint = spectint;
+			refractivity = refr;
             roughness = rough;
             ior = ior_;
 
@@ -88,6 +94,7 @@ namespace Lykta {
             diffuseTexture = diffTex;
             specularTexture = specTex;
             tintTexture = tintTex;
+			refractionTexture = refrTex;
             roughnessTexture = roughTex;
 			opacityTexture = opacTex;
         };
@@ -108,9 +115,12 @@ namespace Lykta {
 
         glm::vec3 evalSpecular(SurfaceInteraction& si, const MaterialParameters& params) const;
         glm::vec3 evalDiffuse(SurfaceInteraction& si, const MaterialParameters& params) const;
-        glm::vec3 sampleSpecular(const glm::vec2& sample, SurfaceInteraction& si, const MaterialParameters& params) const;
-        glm::vec3 sampleDiffuse(const glm::vec2& sample, SurfaceInteraction& si, const MaterialParameters& params) const;
+		glm::vec3 evalRefraction(SurfaceInteraction& si, const MaterialParameters& params) const;
 		
+		glm::vec3 sampleSpecular(const glm::vec2& sample, SurfaceInteraction& si, const MaterialParameters& params) const;
+        glm::vec3 sampleDiffuse(const glm::vec2& sample, SurfaceInteraction& si, const MaterialParameters& params) const;
+		glm::vec3 sampleRefraction(const glm::vec2& sample, SurfaceInteraction& si, const MaterialParameters& params) const;
+
         glm::vec3 evaluate(SurfaceInteraction& si, const MaterialParameters& params) const;
         glm::vec3 sample(const glm::vec2& sample, SurfaceInteraction& si, const MaterialParameters& params) const;
 

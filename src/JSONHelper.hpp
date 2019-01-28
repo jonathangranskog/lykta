@@ -254,6 +254,11 @@ namespace Lykta {
 				else specularTint = 0.f;
 				specularTint = clamp(specularTint, 0, 1);
 
+				float refraction;
+				if (arr[i].HasMember("refraction")) refraction = arr[i]["refraction"].GetFloat();
+				else refraction = 0.f;
+				refraction = clamp(refraction, 0, 1);
+
 				float ior;
 				if (arr[i].HasMember("ior")) ior = arr[i]["ior"].GetFloat();
 				else ior = 1.33f;
@@ -271,6 +276,9 @@ namespace Lykta {
                 TexturePtr<float> tintTexture = nullptr;
                 if (arr[i].HasMember("tintTexture")) tintTexture = readFloatTexture("tintTexture", arr[i], scenepath);
 
+				TexturePtr<float> refractionTexture = nullptr;
+				if (arr[i].HasMember("refractionTexture")) refractionTexture = readFloatTexture("refractionTexture", arr[i], scenepath);
+
                 TexturePtr<float> roughnessTexture = nullptr;
                 if (arr[i].HasMember("roughnessTexture")) roughnessTexture = readFloatTexture("roughnessTexture", arr[i], scenepath);
 
@@ -279,9 +287,9 @@ namespace Lykta {
 
                 // Create material
                 MaterialPtr mat = MaterialPtr(new SurfaceMaterial(diffuseColor, emissiveColor,
-                                                                  specular, specularTint,
+                                                                  specular, specularTint, refraction,
                                                                   roughness, ior, twosided, diffuseTexture,
-                                                                  specularTexture, tintTexture,
+                                                                  specularTexture, tintTexture, refractionTexture,
                                                                   roughnessTexture, opacityTexture));
 
 				const rapidjson::Value& name = arr[i]["name"];

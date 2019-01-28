@@ -15,6 +15,9 @@ MaterialParameters SurfaceMaterial::evalMaterialParameters(const glm::vec2& uv) 
     if (tintTexture) params.specularTint = clamp(tintTexture->eval(uv), 0.f, 1.f);
     else params.specularTint = specularTint;
 
+	if (refractionTexture) params.refractivity = clamp(refractionTexture->eval(uv), 0.f, 1.f);
+	else params.refractivity = refractivity;
+
     if (roughnessTexture) params.roughness = clamp(roughnessTexture->eval(uv), 0.05f, 1.f);
     else params.roughness = roughness;
 
@@ -78,6 +81,12 @@ glm::vec3 SurfaceMaterial::evalDiffuse(SurfaceInteraction& si, const MaterialPar
     return INV_PI * params.diffuseColor;
 }
 
+glm::vec3 SurfaceMaterial::evalRefraction(SurfaceInteraction& si, const MaterialParameters& params) const {
+	// TODO: Implement refraction
+	si.pdf = 0.f;
+	return glm::vec3(0.f);
+}
+
 glm::vec3 SurfaceMaterial::sampleSpecular(const glm::vec2& sample, SurfaceInteraction& si, const MaterialParameters& params) const {
     glm::vec3 wh = Sampling::GGX(sample, params.alpha);
 	// Reflect incoming vector with sampled half vector
@@ -105,19 +114,28 @@ glm::vec3 SurfaceMaterial::sampleDiffuse(const glm::vec2& sample, SurfaceInterac
     return params.diffuseColor;
 }
 
+glm::vec3 SurfaceMaterial::sampleRefraction(const glm::vec2& sample, SurfaceInteraction& si, const MaterialParameters& params) const {
+	// TODO: Implement refraction
+	si.pdf = 0.f;
+	return glm::vec3(0.f);
+}
+
 // Final evaluate computes combination of responses given incident and outgoing directions
 glm::vec3 SurfaceMaterial::evaluate(SurfaceInteraction& si, const MaterialParameters& params) const {
     glm::vec3 diffuseEval = evalDiffuse(si, params);
 	float diffusePdf = si.pdf;
     glm::vec3 specularEval = evalSpecular(si, params);
 	float specularPdf = si.pdf;
+	glm::vec3 refractionEval = evalRefraction(si, params);
+	float refractionPdf = si.pdf;
 
-    si.pdf = (1 - params.specular) * diffusePdf + params.specular * specularPdf;
+    si.pdf = params.refractivity * refractionPdf + (1 - params.refractivity) * ((1 - params.specular) * diffusePdf + params.specular * specularPdf);
 	if (si.pdf < FLT_EPS) {
 		si.pdf = 0.f;
 		return glm::vec3(0.f);
 	}
-    return (1 - params.specular) * diffuseEval + params.specular * specularEval;
+
+    return params.refractivity * refractionEval + (1 - params.refractivity) * ((1 - params.specular) * diffuseEval + params.specular * specularEval);
 }
 
 // Randomly samples outgoing direction from either specular or diffuse
@@ -126,12 +144,21 @@ glm::vec3 SurfaceMaterial::evaluate(SurfaceInteraction& si, const MaterialParame
 glm::vec3 SurfaceMaterial::sample(const glm::vec2& sample, SurfaceInteraction& si, const MaterialParameters& params) const {
 	glm::vec2 s = sample;
 
-    if (s.x < params.specular) {
-        s.x /= params.specular;
-        return sampleSpecular(s, si, params);
+	if (s.y < params.refractivity) {
+		// Save s.x information to sample fresnel
+		s.y /= params.refractivity;
+		return sampleRefraction(s, si, params);
 	}
 	else {
-        s.x = (s.x - params.specular) / (1.f - params.specular);
-        return sampleDiffuse(s, si, params);
+		s.y = (s.y - params.refractivity) / (1.f - params.refractivity);
+
+		if (s.x < params.specular) {
+			s.x /= params.specular;
+			return sampleSpecular(s, si, params);
+		}
+		else {
+			s.x = (s.x - params.specular) / (1.f - params.specular);
+			return sampleDiffuse(s, si, params);
+		}
 	}
 }
